@@ -1,0 +1,86 @@
+[
+    {
+        "Name": "Adirondack Railroad, Adirondack Railway Preservation Society",
+        "Category": "RECREATION (Sports,Camps, Golf, Indoor/Outdoor Activities), EVENT VENUES & SERVICES (Banquet/Conference Facilities, Event Planners), ENTERTAINMENT (Sports, Festivals, Events, Entertainers & Services), ARTS & CULTURE (Museums, Zoos, Galleries, etc.), TRANSPORTATION & TRAVEL & TOURISM",
+        "Address": "N/A",
+        "Phone": "800-819-2291",
+        "Description": "Offers scenic train excursions through the Adirondack Mountains, preserving railway heritage with historical narratives and seasonal themes. Provides a unique way to experience the natural beauty of upstate New York. Check website for schedule and special events."
+    },
+    {
+        "Name": "Kelberman",
+        "Category": "NON-PROFIT ORGANIZATIONS",
+        "Address": "N/A",
+        "Phone": "315-797-6241",
+        "Description": "Provides comprehensive educational, clinical, and support services for individuals with autism spectrum disorders and their families in the Mohawk Valley region. Dedicated to improving the lives of those affected by autism."
+    },
+    {
+        "Name": "Mastrovito Hyundai",
+        "Category": "AUTO (Dealers, Clubs, Recreational Vehicles, Repairs & Service)",
+        "Address": "N/A",
+        "Phone": "315-736-8356",
+        "Description": "New and used Hyundai dealership providing sales, financing, and service options. Aims to deliver a customer-focused car buying experience with a wide selection of vehicles and maintenance services."
+    },
+    {
+        "Name": "Mohawk Valley Health System (MVHS)",
+        "Category": "HEALTHCARE (Facilities, Dental, Medical & Mental Health Providers, Services & Supplies, Pharmacies)",
+        "Address": "N/A",
+        "Phone": "315-624-6000",
+        "Description": "Integrated healthcare system offering a comprehensive range of medical services including hospital care, specialized treatments, primary care, and community health programs throughout the Mohawk Valley."
+    },
+    {
+        "Name": "Premium Mortgage",
+        "Category": "FINANCIAL INSTITUTIONS & SERVICES (Banks, Credit Unions, Accounting & Tax Svc., Investment Advisors, Credit & Collection Agencies), Veteran-Owned",
+        "Address": "N/A",
+        "Phone": "315-288-2237",
+        "Description": "Mortgage brokerage providing home financing solutions with various loan options. Veteran-Owned committed to assisting clients in finding the best mortgage products tailored to their needs."
+    },
+    {
+        "Name": "Staffworks",
+        "Category": "EMPLOYMENT SERVICES, Woman-Owned (Certified MWBE)",
+        "Address": "N/A",
+        "Phone": "315-735-5050",
+        "Description": "Full-service employment agency specializing in connecting talented individuals with leading employers in the area. Woman-Owned (Certified MWBE), provides staffing solutions for various industries."
+    },
+    {
+        "Name": "Visions Hotels",
+        "Category": "EVENT VENUES & SERVICES (Banquet/Conference Facilities, Event Planners), LODGING",
+        "Address": "N/A",
+        "Phone": "315-663-7870",
+        "Description": "Hotel management company operating lodging facilities and event venues. Offers accommodations for travelers and spaces for banquets, conferences, and special events."
+    },
+    {
+        "Name": "12 North Sports Bar",
+        "Category": "FOOD & BEVERAGE(Restaurants, Bakeries, Cafes, Bars, Breweries, Wineries, Distilleries, Liquor Stores",
+        "Address": "10125 Mulaney Rd, Utica, NY 13502",
+        "Phone": "3157329039",
+        "Description": "Lively sports bar serving pub fare and drinks in a casual setting. Known for its TVs broadcasting sporting events, creating a social atmosphere for sports enthusiasts. Wide selection of beers and appetizers."
+    },
+    {
+        "Name": "3 Brothers Sealcoating",
+        "Category": "CONTRACTORS (General, Builders, Electricians, Plumbers, HVAC, etc.)",
+        "Address": "13 Hopper Street, Utica, NY 13501",
+        "Phone": "3157480425",
+        "Description": "Provides professional sealcoating services to protect and prolong the lifespan of asphalt surfaces. Offers comprehensive solutions for residential and commercial clients, enhancing pavement appearance and durability."
+    },
+    {
+        "Name": "4 Elements Studio",
+        "Category": "ARTS & CULTURE (Museums, Zoos, Galleries, etc.), NON-PROFIT ORGANIZATIONS",
+        "Address": "809 Court Street, Utica, NY 13502",
+        "Phone": "3157656923",
+        "Description": "Dedicated to fostering creativity and community engagement through various art forms. Offers classes, workshops, and exhibitions, and involved in non-profit initiatives and promotes the arts in the region."
+    },
+    {
+        "Name": "4K Creative Studios, LLC",
+        "Category": "PHOTOGRAPHY & VIDEO SERVICES & FILM PRODUCTION, Minority owned",
+        "Address": "9898 River Road, Utica, NY 13502",
+        "Phone": "3155802736",
+        "Description": "Offers professional photography and videography services for various purposes, including events, commercials, and promotional content. Minority owned and aims to deliver high-quality visual storytelling solutions."
+    },
+    {
+        "Name": "50 Forward Mohawk Valley",
+        "Category": "NON-PROFIT ORGANIZATIONS",
+        "Address": "220 MEMORIAL PKWY, UTICA, NY 13501",
+        "Phone": "315-223-3973",
+        "Description": "Dedicated to serving the needs of seniors in the Mohawk Valley. Their mission is to empower individuals aged 50 and over to live fulfilling and engaged lives through programs, resources, and advocacy. Active living."
+    }
+]
