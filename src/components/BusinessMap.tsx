@@ -186,24 +186,24 @@ export default function BusinessMap({
         closeButton: false,
         closeOnClick: false
       }).setHTML(`
-        <div class="p-3 max-w-xs">
-          <div class="flex justify-between items-start mb-2">
-            <h3 class="font-bold text-sm text-gray-800">${business.name}</h3>
+        <div class="p-4 max-w-sm bg-gradient-to-br from-white to-indigo-50 rounded-xl border border-indigo-200 shadow-lg">
+          <div class="flex justify-between items-start mb-3">
+            <h3 class="font-bold text-lg text-gray-900">${business.name}</h3>
             <div class="flex items-center ml-2">
-              <span class="text-yellow-500 text-sm">⭐</span>
-              <span class="text-sm font-semibold">${business.rating}</span>
+              <span class="text-yellow-500 text-lg">⭐</span>
+              <span class="text-lg font-bold text-gray-800">${business.rating}</span>
             </div>
           </div>
-          <div class="flex items-center gap-2 mb-2 flex-wrap">
-            <span class="text-xs text-gray-600">${business.category}</span>
-            ${business.isNonprofit ? '<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Non-Profit</span>' : ''}
-            ${business.veteranOwned ? '<span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">Veteran Owned</span>' : ''}
-            ${business.featured ? '<span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">Featured</span>' : ''}
+          <div class="flex items-center gap-2 mb-3 flex-wrap">
+            <span class="text-sm text-indigo-600 font-medium">${business.category}</span>
+            ${business.isNonprofit ? '<span class="bg-gradient-to-r from-green-500 to-green-600 text-white text-xs px-2 py-1 rounded-full">💚 Non-Profit</span>' : ''}
+            ${business.veteranOwned ? '<span class="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs px-2 py-1 rounded-full">🇺🇸 Veteran</span>' : ''}
+            ${business.featured ? '<span class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full">✨ Featured</span>' : ''}
           </div>
-          <p class="text-xs text-gray-700 mb-2">${business.description.substring(0, 100)}...</p>
-          <div class="text-xs text-gray-600 space-y-1">
-            <div>📍 ${business.address}</div>
-            <div>📞 ${business.phone}</div>
+          <p class="text-sm text-gray-700 mb-3 leading-relaxed">${business.description.substring(0, 100)}...</p>
+          <div class="text-sm text-gray-600 space-y-2">
+            <div class="flex items-center text-green-600"><span class="mr-2">📍</span> ${business.address}</div>
+            <div class="flex items-center text-blue-600"><span class="mr-2">📞</span> ${business.phone}</div>
           </div>
         </div>
       `)
@@ -276,37 +276,37 @@ export default function BusinessMap({
     <div className="w-full h-full relative">
       <div ref={mapContainer} className="w-full h-full" />
       
-      <div className="absolute top-4 left-4 bg-white rounded-lg shadow-lg p-3 text-sm max-h-96 overflow-y-auto">
-        <h4 className="font-semibold mb-2 text-gray-900">Legend</h4>
-        <div className="space-y-2">
-          <div className="text-xs font-medium text-gray-700">Business Types:</div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-blue-500 rounded-full border-2 border-white flex items-center justify-center text-xs">🏢</div>
-            <span className="text-xs text-gray-700">For-Profit</span>
+      <div className="absolute top-4 left-4 bg-gradient-to-br from-white to-indigo-50 rounded-2xl shadow-2xl border border-white/20 backdrop-blur-xl p-4 text-sm max-h-96 overflow-y-auto">
+        <h4 className="font-bold mb-3 text-gray-900 text-base tracking-wide">Map Legend</h4>
+        <div className="space-y-3">
+          <div className="text-sm font-semibold text-indigo-700 uppercase tracking-wide">Business Types</div>
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-xs">🏢</div>
+            <span className="text-sm text-gray-700 font-medium">For-Profit</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-gray-500 rounded-full border-2 border-white flex items-center justify-center text-xs">🤝</div>
-            <span className="text-xs text-gray-700">Non-Profit</span>
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 bg-gradient-to-br from-gray-500 to-gray-600 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-xs">🤝</div>
+            <span className="text-sm text-gray-700 font-medium">Non-Profit</span>
           </div>
           
-          <div className="text-xs font-medium text-gray-700 mt-3">Special Markers:</div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-amber-500 rounded-full border-2 border-yellow-400 flex items-center justify-center text-xs">⭐</div>
-            <span className="text-xs text-gray-700">Featured</span>
+          <div className="text-sm font-semibold text-indigo-700 uppercase tracking-wide mt-4">Special Markers</div>
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-full border-2 border-yellow-300 shadow-lg flex items-center justify-center text-xs">⭐</div>
+            <span className="text-sm text-gray-700 font-medium">Featured</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-blue-500 rounded-full border-2 border-red-600 flex items-center justify-center text-xs relative">
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full border-2 border-red-500 shadow-lg flex items-center justify-center text-xs relative">
               🏢
-              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-red-600 rounded-full flex items-center justify-center text-xs">🇺🇸</div>
+              <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-gradient-to-br from-red-600 to-red-700 rounded-full shadow-md flex items-center justify-center text-xs">🇺🇸</div>
             </div>
-            <span className="text-xs text-gray-700">Veteran Owned</span>
+            <span className="text-sm text-gray-700 font-medium">Veteran Owned</span>
           </div>
           
-          <div className="text-xs font-medium text-gray-700 mt-3">Categories:</div>
-          <div className="grid grid-cols-2 gap-1 text-xs text-gray-700">
-            <div className="flex items-center gap-1"><span>🍽️</span><span>Restaurant</span></div>
-            <div className="flex items-center gap-1"><span>☕</span><span>Coffee</span></div>
-            <div className="flex items-center gap-1"><span>🏠</span><span>Home Services</span></div>
+          <div className="text-sm font-semibold text-indigo-700 uppercase tracking-wide mt-4">Categories</div>
+          <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
+            <div className="flex items-center gap-2 bg-white/50 rounded-lg p-2"><span>🍽️</span><span>Restaurant</span></div>
+            <div className="flex items-center gap-2 bg-white/50 rounded-lg p-2"><span>☕</span><span>Coffee</span></div>
+            <div className="flex items-center gap-2 bg-white/50 rounded-lg p-2"><span>🏠</span><span>Home Services</span></div>
             <div className="flex items-center gap-1"><span>🎓</span><span>Education</span></div>
             <div className="flex items-center gap-1"><span>🏥</span><span>Health</span></div>
             <div className="flex items-center gap-1"><span>🎨</span><span>Arts</span></div>
@@ -314,8 +314,10 @@ export default function BusinessMap({
         </div>
       </div>
 
-      <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg px-3 py-2 text-sm">
-        <span className="font-semibold">{businesses.length}</span> businesses shown
+      <div className="absolute bottom-4 left-4 bg-gradient-to-r from-indigo-600 to-blue-700 rounded-xl shadow-2xl px-4 py-3 text-sm border border-white/20 backdrop-blur-sm">
+        <span className="text-white font-bold">
+          📍 <span className="font-bold">{businesses.length}</span> business{businesses.length !== 1 ? 'es' : ''} shown
+        </span>
       </div>
     </div>
   )

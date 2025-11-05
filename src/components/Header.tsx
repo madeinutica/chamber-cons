@@ -1,12 +1,36 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
+import AuthModal from './AuthModal'
 
 interface HeaderProps {
   searchTerm: string
   onSearchChange: (term: string) => void
   selectedCategory: string
   onCategoryChange: (category: string) => void
+}
+
+// Helper function for category icons
+function getCategoryIcon(category: string): string {
+  const icons: { [key: string]: string } = {
+    'Home Services': '🏠',
+    'Restaurant': '🍽️',
+    'Coffee & Tea': '☕',
+    'Bakery': '🥖',
+    'Retail': '🛍️',
+    'Professional Services': '💼',
+    'Health & Wellness': '🏥',
+    'Non-Profit': '🤝',
+    'Education': '🎓',
+    'Community Services': '🏛️',
+    'Arts & Culture': '🎨',
+    'Animal Welfare': '🐾',
+    'Youth Services': '👶',
+    'Emergency Services': '🚨',
+    'Entertainment': '🎭'
+  }
+  return icons[category] || '🏢'
 }
 
 const categories = [
@@ -34,69 +58,202 @@ export default function Header({
   selectedCategory, 
   onCategoryChange 
 }: HeaderProps) {
+  const { user, signOut, loading } = useAuth()
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
+
   return (
-    <div className="bg-primary-600 text-white p-4">
-      {/* Logo and Title */}
-      <div className="flex items-center mb-4">
-        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center mr-3">
-          <span className="text-primary-600 font-bold text-sm">CNY</span>
+    <>
+      <div className="relative bg-gradient-to-br from-indigo-600 via-blue-600 to-blue-700 text-white">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="w-full h-full bg-repeat" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          }}></div>
         </div>
-        <div>
-          <h1 className="text-lg font-bold">CNY Directory</h1>
-          <p className="text-sm text-primary-100">Central New York</p>
+        
+        <div className="relative z-10 p-6">
+          {/* Header Top - Logo and User Menu */}
+          <div className="flex items-center justify-between mb-6">
+            {/* Logo and Title */}
+            <div className="flex items-center">
+              <div className="relative">
+                <div className="w-12 h-12 bg-gradient-to-br from-white to-blue-100 rounded-xl flex items-center justify-center mr-4 shadow-lg transform hover:scale-105 transition-transform">
+                  <span className="text-indigo-600 font-bold text-lg">🏛️</span>
+                </div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
+                  <span className="text-xs">✨</span>
+                </div>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+                  Chamber Concierge
+                </h1>
+                <p className="text-sm text-blue-100 font-medium">Central New York Business Directory</p>
+              </div>
+            </div>
+
+            {/* User Menu */}
+            <div className="flex items-center space-x-4">
+              {loading ? (
+                <div className="animate-pulse flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-white/20 rounded-full"></div>
+                  <div className="w-16 h-4 bg-white/20 rounded"></div>
+                </div>
+              ) : user ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center space-x-3 bg-white/10 hover:bg-white/20 rounded-xl px-4 py-2 transition-colors"
+                  >
+                    <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">
+                        {user.display_name?.[0] || user.username[0] || user.email[0]}
+                      </span>
+                    </div>
+                    <div className="text-left">
+                      <p className="font-medium text-sm">{user.display_name || user.username}</p>
+                      <p className="text-xs text-blue-100">{user.role}</p>
+                    </div>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {/* User Menu Dropdown */}
+                  {showUserMenu && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-50">
+                      <button
+                        className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors flex items-center"
+                        onClick={() => {
+                          setShowUserMenu(false)
+                          // TODO: Navigate to profile
+                        }}
+                      >
+                        <span className="mr-3">👤</span>
+                        My Profile
+                      </button>
+                      <button
+                        className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors flex items-center"
+                        onClick={() => {
+                          setShowUserMenu(false)
+                          // TODO: Navigate to my posts
+                        }}
+                      >
+                        <span className="mr-3">📝</span>
+                        My Posts
+                      </button>
+                      <hr className="my-2 border-gray-200" />
+                      <button
+                        className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 transition-colors flex items-center"
+                        onClick={() => {
+                          setShowUserMenu(false)
+                          signOut()
+                        }}
+                      >
+                        <span className="mr-3">🚪</span>
+                        Sign Out
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => setShowAuthModal(true)}
+                    className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-colors font-medium"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => setShowAuthModal(true)}
+                    className="bg-white text-indigo-600 hover:bg-gray-100 px-4 py-2 rounded-lg transition-colors font-medium shadow-lg"
+                  >
+                    Join Community
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-3 gap-2 mb-6">
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+            <div className="text-xs text-blue-100 font-medium">Businesses</div>
+            <div className="text-lg font-bold">500+</div>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+            <div className="text-xs text-blue-100 font-medium">Categories</div>
+            <div className="text-lg font-bold">15+</div>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+            <div className="text-xs text-blue-100 font-medium">Featured</div>
+            <div className="text-lg font-bold">⭐ 25</div>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="mb-4 relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            placeholder="Search businesses, services, or categories..."
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 rounded-xl text-gray-800 placeholder-gray-500 bg-white/95 backdrop-blur-sm border border-white/20 shadow-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all"
+          />
+        </div>
+
+        {/* Category Filter */}
+        <div className="mb-4">
+          <select
+            value={selectedCategory}
+            onChange={(e) => onCategoryChange(e.target.value)}
+            className="w-full px-4 py-3 rounded-xl text-gray-800 bg-white/95 backdrop-blur-sm border border-white/20 shadow-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all cursor-pointer"
+          >
+            {categories.map((category) => (
+              <option key={category} value={category === 'All Categories' ? '' : category}>
+                {category === 'All Categories' ? '🏢 All Categories' : `${getCategoryIcon(category)} ${category}`}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Quick Filters */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          <button className="bg-yellow-400/20 hover:bg-yellow-400/30 border border-yellow-400/30 text-yellow-100 px-3 py-1 rounded-full text-xs font-medium transition-all hover:scale-105">
+            ⭐ Featured
+          </button>
+          <button className="bg-red-400/20 hover:bg-red-400/30 border border-red-400/30 text-red-100 px-3 py-1 rounded-full text-xs font-medium transition-all hover:scale-105">
+            🇺🇸 Veteran Owned
+          </button>
+          <button className="bg-green-400/20 hover:bg-green-400/30 border border-green-400/30 text-green-100 px-3 py-1 rounded-full text-xs font-medium transition-all hover:scale-105">
+            🤝 Non-Profit
+          </button>
+        </div>
+
+        {/* Results Header */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-blue-100">
+            Explore Local Businesses
+          </h2>
+          <div className="text-xs text-blue-200">
+            📍 Utica Area
+          </div>
+        </div>
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex space-x-4 mb-4 text-sm">
-        <button className="bg-white text-primary-600 px-3 py-1 rounded flex items-center">
-          <span className="mr-1">🗺️</span>
-          Map
-        </button>
-        <button className="text-primary-100 px-3 py-1 rounded flex items-center">
-          <span className="mr-1">🏢</span>
-          Businesses
-          <span className="ml-1 bg-primary-500 text-xs px-1 rounded">25+</span>
-        </button>
-        <button className="text-primary-100 px-3 py-1 rounded flex items-center">
-          <span className="mr-1">🤝</span>
-          Nonprofits
-          <span className="ml-1 bg-primary-500 text-xs px-1 rounded">70+</span>
-        </button>
-      </div>
-
-      {/* Search */}
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Search businesses..."
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full px-3 py-2 rounded text-gray-800 placeholder-gray-500"
-        />
-      </div>
-
-      {/* Category Filter */}
-      <div>
-        <select
-          value={selectedCategory}
-          onChange={(e) => onCategoryChange(e.target.value)}
-          className="w-full px-3 py-2 rounded text-gray-800"
-        >
-          {categories.map((category) => (
-            <option key={category} value={category === 'All Categories' ? '' : category}>
-              {category}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Featured Businesses Header */}
-      <div className="mt-4 mb-2">
-        <h2 className="text-sm font-semibold flex items-center">
-          ⭐ Featured Businesses
-        </h2>
-      </div>
-    </div>
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        defaultMode="signin"
+      />
+    </>
   )
 }

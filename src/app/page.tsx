@@ -5,7 +5,11 @@ import BusinessMap from '@/components/BusinessMap'
 import BusinessList from '@/components/BusinessList'
 import ChatBot from '@/components/ChatBot'
 import Header from '@/components/Header'
+import CommunityFeed from '@/components/CommunityFeed'
+import { AuthProvider } from '@/contexts/AuthContext'
 import { Business } from '@/types/business'
+
+type ViewMode = 'directory' | 'community'
 
 export default function Home() {
   const [businesses, setBusinesses] = useState<Business[]>([])
@@ -14,6 +18,7 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [mapFocus, setMapFocus] = useState<{ business: Business; action: string } | null>(null)
+  const [viewMode, setViewMode] = useState<ViewMode>('directory')
 
   // Function for chatbot to focus on a business
   const focusOnBusiness = useCallback((business: Business, action: string = 'show') => {
@@ -97,9 +102,12 @@ export default function Home() {
 
   const loadBusinessesFromDatabase = useCallback(async () => {
     try {
+      console.log('Loading businesses from database...')
       const response = await fetch('/api/businesses')
       if (response.ok) {
         const data = await response.json()
+        console.log('Businesses loaded:', data.businesses?.length || 0, 'businesses')
+        console.log('Sample business:', data.businesses?.[0])
         setBusinesses(data.businesses || [])
       } else {
         console.error('Failed to fetch businesses:', response.statusText)
@@ -122,51 +130,94 @@ export default function Home() {
     // Filter businesses based on search and category
     let filtered = businesses
     
+    console.log('Filtering businesses:', businesses.length, 'total')
+    console.log('Search term:', searchTerm)
+    console.log('Selected category:', selectedCategory)
+    
     if (searchTerm) {
       filtered = filtered.filter(business =>
         business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         business.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
         business.description.toLowerCase().includes(searchTerm.toLowerCase())
       )
+      console.log('After search filter:', filtered.length)
     }
     
     if (selectedCategory) {
       filtered = filtered.filter(business => business.category === selectedCategory)
+      console.log('After category filter:', filtered.length)
     }
     
+    console.log('Final filtered businesses:', filtered.length)
     setFilteredBusinesses(filtered)
   }, [businesses, searchTerm, selectedCategory])
 
   return (
-    <main className="flex h-screen">
-      {/* Left Sidebar */}
-      <div className="w-1/3 bg-white shadow-lg overflow-hidden flex flex-col">
-        <Header 
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-        />
-        <BusinessList
-          businesses={filteredBusinesses}
-          selectedBusiness={selectedBusiness}
-          onBusinessSelect={setSelectedBusiness}
-        />
-      </div>
+    <AuthProvider>
+      <main className="flex h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        {/* Left Sidebar */}
+        <div className="w-1/3 bg-white/90 backdrop-blur-sm shadow-2xl overflow-hidden flex flex-col border-r border-slate-200/50">
+          <Header 
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+          />
+          
+          {/* View Mode Tabs */}
+          <div className="flex border-b border-gray-200 bg-white">
+            <button
+              onClick={() => setViewMode('directory')}
+              className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
+                viewMode === 'directory'
+                  ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              🏢 Business Directory
+            </button>
+            <button
+              onClick={() => setViewMode('community')}
+              className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
+                viewMode === 'community'
+                  ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              👥 Community Feed
+            </button>
+          </div>
 
-      {/* Right Map Area */}
-      <div className="flex-1 relative">
-        <BusinessMap
-          businesses={filteredBusinesses}
-          selectedBusiness={selectedBusiness}
-          onBusinessSelect={setSelectedBusiness}
-          mapFocus={mapFocus}
-        />
-        <ChatBot 
-          businesses={businesses}
-          onShowOnMap={focusOnBusiness}
-        />
-      </div>
-    </main>
+          {/* Content based on view mode */}
+          <div className="flex-1 overflow-hidden">
+            {viewMode === 'directory' ? (
+              <BusinessList
+                businesses={filteredBusinesses}
+                selectedBusiness={selectedBusiness}
+                onBusinessSelect={setSelectedBusiness}
+              />
+            ) : (
+              <div className="h-full overflow-y-auto p-4">
+                <CommunityFeed />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Map Area */}
+        <div className="flex-1 relative overflow-hidden">
+          <BusinessMap
+            businesses={filteredBusinesses}
+            selectedBusiness={selectedBusiness}
+            onBusinessSelect={setSelectedBusiness}
+            mapFocus={mapFocus}
+          />
+          <ChatBot 
+            businesses={businesses}
+            onShowOnMap={focusOnBusiness}
+          />
+        </div>
+      </main>
+    </AuthProvider>
   )
 }

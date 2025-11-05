@@ -63,7 +63,7 @@ const FormattedMessage = ({ text, businesses, onShowOnMap }: {
               {businessCards.map((business) => (
                 <div 
                   key={business.id}
-                  className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  className="bg-gradient-to-br from-white to-indigo-50 border border-indigo-200 rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105"
                   onClick={() => onShowOnMap?.(business, 'show')}
                 >
                   <div className="flex justify-between items-start mb-1">
@@ -91,20 +91,23 @@ const FormattedMessage = ({ text, businesses, onShowOnMap }: {
                     )}
                   </div>
                   
-                  <div className="flex gap-1 mt-2 flex-wrap">
+                  <div className="flex gap-1 mt-3 flex-wrap">
                     {business.featured && (
-                      <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">Featured</span>
+                      <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium shadow-sm">✨ Featured</span>
                     )}
                     {business.veteranOwned && (
-                      <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">Veteran Owned</span>
+                      <span className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs px-2 py-1 rounded-full font-medium shadow-sm">🇺🇸 Veteran</span>
                     )}
                     {business.isNonprofit && (
-                      <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Non-Profit</span>
+                      <span className="bg-gradient-to-r from-green-500 to-green-600 text-white text-xs px-2 py-1 rounded-full font-medium shadow-sm">💚 Non-Profit</span>
                     )}
                   </div>
                   
-                  <div className="mt-2 text-xs text-gray-500 hover:text-blue-600">
-                    Click to view on map →
+                  <div className="mt-3 text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center">
+                    <span>Click to view on map</span>
+                    <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
                   </div>
                 </div>
               ))}
@@ -118,6 +121,7 @@ const FormattedMessage = ({ text, businesses, onShowOnMap }: {
 
 export default function ChatBot({ businesses: propBusinesses = [], onShowOnMap }: ChatBotProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
   const [businesses, setBusinesses] = useState<Business[]>(propBusinesses)
   const [showQuickActions, setShowQuickActions] = useState(true)
   const [messages, setMessages] = useState<Message[]>([
@@ -327,31 +331,64 @@ export default function ChatBot({ businesses: propBusinesses = [], onShowOnMap }
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-4 right-4 z-50">
+      <div className="fixed bottom-6 right-6 z-50">
         <button
           onClick={() => setIsOpen(true)}
-          className="bg-primary-600 text-white p-4 rounded-full shadow-lg hover:bg-primary-700 transition-colors"
+          className="bg-gradient-to-br from-indigo-500 via-blue-600 to-blue-600 text-white p-4 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 border border-white/20 backdrop-blur-sm"
         >
-          <span className="text-xl">💬</span>
+          <div className="relative">
+            <span className="text-2xl">💬</span>
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+          </div>
         </button>
       </div>
     )
   }
 
   return (
-    <div className="fixed bottom-4 right-4 w-80 h-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 flex flex-col">
+    <div className={`fixed bottom-6 right-6 bg-gradient-to-br from-white via-gray-50 to-indigo-50 rounded-2xl shadow-2xl border border-white/20 backdrop-blur-xl z-50 flex flex-col transition-all duration-300 ${
+      isExpanded 
+        ? 'w-96 h-[600px]' 
+        : 'w-80 h-96'
+    }`}>
       {/* Header */}
-      <div className="bg-primary-600 text-white p-4 rounded-t-lg flex justify-between items-center">
+      <div className="bg-gradient-to-r from-indigo-600 via-blue-600 to-blue-700 text-white p-4 rounded-t-2xl shadow-lg flex justify-between items-center">
         <div>
-          <h3 className="font-semibold">CNY Business Concierge</h3>
-          <p className="text-xs text-primary-100">Ask me anything!</p>
+          <div className="flex items-center space-x-2 mb-1">
+            <div className="relative">
+              <span className="text-xl">🏛️</span>
+              <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            </div>
+            <h3 className="font-bold text-lg tracking-wide">Biz Concierge</h3>
+          </div>
+          <p className="text-indigo-100 text-xs font-medium">AI Assistant</p>
         </div>
-        <button
-          onClick={() => setIsOpen(false)}
-          className="text-white hover:text-gray-200"
-        >
-          ✕
-        </button>
+        <div className="flex items-center space-x-2">
+          {/* Expand/Collapse Button */}
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="p-2 hover:bg-white/20 rounded-lg transition-colors duration-200"
+            title={isExpanded ? "Make smaller" : "Expand chat"}
+          >
+            {isExpanded ? (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 13l3 3 7-7" />
+              </svg>
+            )}
+          </button>
+          {/* Close Button */}
+          <button
+            onClick={() => setIsOpen(false)}
+            className="p-2 hover:bg-white/20 rounded-lg transition-colors duration-200"
+            title="Close chat"
+          >
+            <span className="text-lg">✕</span>
+          </button>
+        </div>
       </div>
 
       {/* Messages */}
@@ -362,10 +399,10 @@ export default function ChatBot({ businesses: propBusinesses = [], onShowOnMap }
             className={`mb-3 ${message.isUser ? 'text-right' : 'text-left'}`}
           >
             <div
-              className={`inline-block p-3 rounded-lg ${
+              className={`inline-block p-3 rounded-xl ${
                 message.isUser
-                  ? 'bg-primary-600 text-white rounded-br-none max-w-xs'
-                  : 'bg-gray-100 text-gray-800 rounded-bl-none max-w-sm'
+                  ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-br-none max-w-xs shadow-lg'
+                  : 'bg-gradient-to-br from-gray-50 to-white text-gray-800 rounded-bl-none max-w-sm border border-gray-200 shadow-sm'
               }`}
             >
               {message.isUser ? (
@@ -396,7 +433,7 @@ export default function ChatBot({ businesses: propBusinesses = [], onShowOnMap }
                 <button
                   key={action.id}
                   onClick={() => handleQuickAction(action.query)}
-                  className="bg-primary-50 hover:bg-primary-100 text-primary-700 border border-primary-200 rounded-lg p-2 text-xs transition-colors duration-200 text-left"
+                  className="bg-gradient-to-br from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 text-indigo-700 border border-indigo-200 rounded-xl p-3 text-xs transition-all duration-200 text-left shadow-sm hover:shadow-md transform hover:scale-105"
                 >
                   {action.text}
                 </button>
@@ -410,7 +447,7 @@ export default function ChatBot({ businesses: propBusinesses = [], onShowOnMap }
           <div className="mb-3 text-center">
             <button
               onClick={() => setShowQuickActions(true)}
-              className="text-xs text-primary-600 hover:text-primary-800 underline"
+              className="text-xs text-indigo-600 hover:text-indigo-800 underline font-medium"
             >
               Show Quick Actions
             </button>
@@ -419,11 +456,11 @@ export default function ChatBot({ businesses: propBusinesses = [], onShowOnMap }
         
         {isTyping && (
           <div className="text-left mb-3">
-            <div className="inline-block p-3 rounded-lg bg-gray-100 text-gray-800 rounded-bl-none">
+            <div className="inline-block p-3 rounded-xl bg-gradient-to-br from-gray-50 to-white text-gray-800 rounded-bl-none border border-gray-200 shadow-sm">
               <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
               </div>
             </div>
           </div>
@@ -433,20 +470,20 @@ export default function ChatBot({ businesses: propBusinesses = [], onShowOnMap }
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-gray-200">
-        <div className="flex space-x-2">
+      <div className="p-4 border-t border-gradient bg-gradient-to-r from-gray-50 to-indigo-50 rounded-b-2xl">
+        <div className="flex space-x-3">
           <input
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Ask your CNY Business Concierge anything..."
-            className="flex-1 p-2 border border-gray-300 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="flex-1 p-3 border border-gray-300 rounded-xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm"
           />
           <button
             onClick={handleSendMessage}
             disabled={!inputText.trim()}
-            className="bg-primary-600 text-white p-2 rounded-lg hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-3 rounded-xl hover:from-indigo-700 hover:to-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
           >
             <span className="text-sm">📤</span>
           </button>

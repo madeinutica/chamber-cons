@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Transform data to match frontend Business type
+    // Transform data to match frontend Business type and filter out invalid coordinates
     const businesses = data?.map(business => ({
       id: business.id,
       name: business.name,
@@ -71,7 +71,12 @@ export async function GET(request: NextRequest) {
         lng: business.longitude,
         lat: business.latitude
       }
-    })) || []
+    })).filter(business => 
+      // Filter out businesses with invalid coordinates (0,0) or missing addresses
+      business.coordinates.lat !== 0 && 
+      business.coordinates.lng !== 0 && 
+      !business.address?.includes('[INVALID]')
+    ) || []
 
     console.log(`Successfully fetched ${businesses.length} businesses`)
     return NextResponse.json({ businesses })
