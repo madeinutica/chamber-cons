@@ -188,7 +188,7 @@ export default function BusinessMap({
       }).setHTML(`
         <div class="p-3 max-w-xs">
           <div class="flex justify-between items-start mb-2">
-            <h3 class="font-bold text-sm">${business.name}</h3>
+            <h3 class="font-bold text-sm text-gray-800">${business.name}</h3>
             <div class="flex items-center ml-2">
               <span class="text-yellow-500 text-sm">⭐</span>
               <span class="text-sm font-semibold">${business.rating}</span>
