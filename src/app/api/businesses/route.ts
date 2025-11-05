@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     console.log('Fetching businesses from Supabase...')
     
-    const { searchParams } = new URL(request.url)
+    const searchParams = request.nextUrl.searchParams
     const category = searchParams.get('category')
     const search = searchParams.get('search')
     const featured = searchParams.get('featured')
