@@ -226,6 +226,7 @@ export interface CreatePostData {
   latitude?: number
   longitude?: number
   media_files?: File[]
+  media_urls?: string[]
   external_url?: string
 }
 

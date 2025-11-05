@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { Post, PostWithEngagement } from '@/types/social'
 import { useAuth } from '@/contexts/AuthContext'
+import MediaGallery from './MediaGallery'
 
 interface PostCardProps {
   post: PostWithEngagement
@@ -130,23 +131,21 @@ export default function PostCard({ post, onVote, onComment }: PostCardProps) {
           {post.content}
         </div>
 
-        {/* Media preview (placeholder for now) */}
+        {/* Media preview */}
         {post.media_urls && post.media_urls.length > 0 && (
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            {post.media_urls.slice(0, 4).map((url: string, index: number) => (
-              <div key={index} className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                <img
-                  src={url}
-                  alt="Post media"
-                  className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                />
-              </div>
-            ))}
-            {post.media_urls.length > 4 && (
-              <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
-                <span className="text-gray-500 text-sm">+{post.media_urls.length - 4} more</span>
-              </div>
-            )}
+          <div className="mt-4">
+            <MediaGallery
+              files={post.media_urls.map((url, index) => ({
+                id: `${post.id}-media-${index}`,
+                url,
+                filename: `media-${index}`,
+                original_filename: `Media ${index + 1}`,
+                file_type: url.includes('.mp4') || url.includes('.webm') ? 'video/mp4' : 'image/jpeg',
+                file_size: 0
+              }))}
+              showDetails={false}
+              columns={post.media_urls.length === 1 ? 1 : 2}
+            />
           </div>
         )}
       </div>

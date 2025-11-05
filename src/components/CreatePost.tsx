@@ -3,6 +3,17 @@
 import React, { useState, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { CreatePostData, PostType } from '@/types/social'
+import MediaUpload from './MediaUpload'
+import MediaGallery from './MediaGallery'
+
+interface UploadedFile {
+  id: string
+  url: string
+  filename: string
+  original_filename: string
+  file_type: string
+  file_size: number
+}
 
 interface CreatePostProps {
   businessId?: string
@@ -24,10 +35,9 @@ export default function CreatePost({ businessId, businessName, onPostCreated, on
   const [postType, setPostType] = useState<PostType>('review')
   const [content, setContent] = useState('')
   const [rating, setRating] = useState<number | null>(null)
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   if (!user) {
     return (
@@ -37,26 +47,17 @@ export default function CreatePost({ businessId, businessName, onPostCreated, on
     )
   }
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || [])
-    const validFiles = files.filter(file => {
-      const isImage = file.type.startsWith('image/')
-      const isVideo = file.type.startsWith('video/')
-      const isValidSize = file.size <= 10 * 1024 * 1024 // 10MB limit
-      return (isImage || isVideo) && isValidSize
-    })
-    
-    if (validFiles.length !== files.length) {
-      setError('Some files were skipped. Only images and videos under 10MB are allowed.')
-    } else {
-      setError('')
-    }
-    
-    setSelectedFiles(prev => [...prev, ...validFiles].slice(0, 5)) // Max 5 files
+  const handleFileUpload = (files: UploadedFile[]) => {
+    setUploadedFiles(prev => [...prev, ...files])
+    setError('')
   }
 
-  const removeFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index))
+  const handleUploadError = (error: string) => {
+    setError(error)
+  }
+
+  const removeFile = (fileId: string) => {
+    setUploadedFiles(prev => prev.filter(file => file.id !== fileId))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,6 +83,11 @@ export default function CreatePost({ businessId, businessName, onPostCreated, on
         rating: postType === 'review' ? rating || undefined : undefined
       }
 
+      // Add media URLs if files were uploaded
+      if (uploadedFiles.length > 0) {
+        postData.media_urls = uploadedFiles.map(file => file.url)
+      }
+
       // Create the post via API
       const response = await fetch('/api/posts', {
         method: 'POST',
@@ -102,7 +108,7 @@ export default function CreatePost({ businessId, businessName, onPostCreated, on
       // Reset form
       setContent('')
       setRating(null)
-      setSelectedFiles([])
+      setUploadedFiles([])
       setPostType('review')
       
       // Call callbacks
@@ -219,68 +225,29 @@ export default function CreatePost({ businessId, businessName, onPostCreated, on
           </div>
         </div>
 
-        {/* File Upload */}
+        {/* Media Upload */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Add Photos or Videos (optional)
           </label>
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-colors"
-          >
-            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            <p className="mt-2 text-sm text-gray-600">
-              Click to upload photos or videos
-            </p>
-            <p className="text-xs text-gray-500">
-              Max 5 files, 10MB each
-            </p>
-          </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept="image/*,video/*"
-            onChange={handleFileSelect}
-            className="hidden"
+          <MediaUpload
+            onUpload={handleFileUpload}
+            onError={handleUploadError}
+            maxFiles={5}
+            className="mb-4"
           />
         </div>
 
-        {/* Selected Files Preview */}
-        {selectedFiles.length > 0 && (
+        {/* Uploaded Files Gallery */}
+        {uploadedFiles.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Selected Files:</h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {selectedFiles.map((file, index) => (
-                <div key={index} className="relative group">
-                  <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                    {file.type.startsWith('image/') ? (
-                      <img
-                        src={URL.createObjectURL(file)}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeFile(index)}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
-                  >
-                    ×
-                  </button>
-                  <p className="text-xs text-gray-500 mt-1 truncate">{file.name}</p>
-                </div>
-              ))}
-            </div>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">Uploaded Files:</h4>
+            <MediaGallery
+              files={uploadedFiles}
+              onRemove={removeFile}
+              showDetails={true}
+              columns={3}
+            />
           </div>
         )}
 
