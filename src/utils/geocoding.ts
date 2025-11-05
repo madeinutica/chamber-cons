@@ -13,9 +13,33 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult | n
   }
 
   try {
-    const encodedAddress = encodeURIComponent(address)
+    // Clean and enhance the address for better geocoding
+    let enhancedAddress = address.trim()
+    
+    // Add "New York" if not present
+    if (!enhancedAddress.toLowerCase().includes('new york') && !enhancedAddress.toLowerCase().includes(' ny')) {
+      // Check if it already has a state abbreviation
+      if (!enhancedAddress.match(/,\s*[A-Z]{2}\s*\d{5}/)) {
+        enhancedAddress += ', NY'
+      }
+    }
+    
+    // Add "United States" for better disambiguation
+    if (!enhancedAddress.toLowerCase().includes('united states') && !enhancedAddress.toLowerCase().includes('usa')) {
+      enhancedAddress += ', United States'
+    }
+
+    const encodedAddress = encodeURIComponent(enhancedAddress)
+    
+    // Use proximity bias towards Central NY (Utica coordinates) and more specific geocoding
     const response = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}&limit=1&country=us`
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?` +
+      `access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}&` +
+      `limit=1&` +
+      `country=us&` +
+      `proximity=-75.2321,43.1009&` + // Bias towards Utica, NY area
+      `types=address,poi&` + // Prefer specific addresses and points of interest
+      `language=en`
     )
 
     if (!response.ok) {
@@ -23,10 +47,24 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult | n
     }
 
     const data = await response.json()
+    console.log(`Geocoding "${address}" -> Enhanced: "${enhancedAddress}"`)
+    console.log(`Results:`, data.features?.length || 0, 'features found')
 
     if (data.features && data.features.length > 0) {
       const feature = data.features[0]
       const [longitude, latitude] = feature.center
+
+      // Validate that we got a reasonably specific result
+      const accuracy = feature.properties?.accuracy
+      const confidence = feature.relevance
+      
+      console.log(`Best match: ${feature.place_name} (confidence: ${confidence}, accuracy: ${accuracy})`)
+      
+      // Reject results that are too general (e.g., just city-level)
+      if (confidence < 0.8 && feature.place_name.split(',').length < 3) {
+        console.warn(`Low confidence result for "${address}": ${feature.place_name}`)
+        return null
+      }
 
       return {
         latitude,
@@ -35,6 +73,7 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult | n
       }
     }
 
+    console.warn(`No geocoding results for: "${address}"`)
     return null
   } catch (error) {
     console.error('Error geocoding address:', error)
