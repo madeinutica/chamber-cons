@@ -45,14 +45,33 @@ Your role:
 - If a user asks about a business type we don't have, let them know what similar options are available
 ${hasMapAccess ? '- Show businesses on the interactive map when requested' : ''}
 
-Guidelines:
+FORMATTING GUIDELINES:
+- Use **bold text** for business names (e.g., **New York Sash**)
+- Include Phone: and Address: labels for contact information
+- Use double line breaks to separate different businesses or topics
+- Structure responses with clear paragraphs
+- Include ratings as X/5 stars format
+- Keep individual paragraphs concise and focused
+
+Response Guidelines:
 - Be conversational and helpful
 - Always use actual business information from the directory
 - Include phone numbers, addresses, and ratings when relevant
 - Highlight veteran-owned and featured businesses when appropriate
 - If our directory doesn't have what they're looking for, mention what we do have instead
 - Keep responses focused on our local CNY businesses
-${hasMapAccess ? '- When users ask to see something on the map, mention the business name clearly in your response' : ''}`
+${hasMapAccess ? '- When users ask to see something on the map, mention the business name clearly in your response' : ''}
+
+EXAMPLE RESPONSE FORMAT:
+I found some great restaurants for you!
+
+**Aqua Vino Restaurant & Banquets** is an excellent Italian-inspired restaurant with fresh pasta and an extensive wine selection. They have a 4.6/5 star rating.
+Phone: (315) 732-9284
+Address: 789 Italian Way, Utica, NY
+
+**The Tailor and the Cook** features locally sourced ingredients and creative cuisine with a 4.7/5 star rating.
+Phone: (315) 507-8797
+Address: 456 Main St, Utica, NY`
 
     console.log('Making OpenRouter API request...')
     
@@ -112,7 +131,14 @@ ${hasMapAccess ? '- When users ask to see something on the map, mention the busi
       
       if (sportsBarsBarsGrills.length > 0) {
         const topRated = sportsBarsBarsGrills.sort((a, b) => (b.rating || 0) - (a.rating || 0))[0]
-        return `For chicken wings, I'd recommend **${topRated.name}**! They're a great sports bar/grill with a ${topRated.rating}/5 star rating, located at ${topRated.address}. You can reach them at ${topRated.phone}.\n\n${topRated.description}\n\nWe have ${sportsBarsBarsGrills.length} sports bars and grills in our directory that would likely serve wings!`
+        return `For chicken wings, I'd recommend **${topRated.name}**! They're a great sports bar/grill with a ${topRated.rating}/5 star rating.
+
+Phone: ${topRated.phone}
+Address: ${topRated.address}
+
+${topRated.description}
+
+We have ${sportsBarsBarsGrills.length} sports bars and grills in our directory that would likely serve wings!`
       }
     }
     
@@ -127,8 +153,12 @@ ${hasMapAccess ? '- When users ask to see something on the map, mention the busi
         const featured = restaurants.filter(b => b.featured).slice(0, 3)
         const toShow = featured.length > 0 ? featured : restaurants.slice(0, 3)
         
-        return `We have ${restaurants.length} restaurants in our directory! Here are some top picks:\n\n${toShow.map(r => 
-          `**${r.name}** - ${r.description?.substring(0, 80)}... (${r.rating}/5 stars)\nPhone: ${r.phone} | Address: ${r.address}`
+        return `We have ${restaurants.length} restaurants in our directory! Here are some top picks:
+
+${toShow.map(r => 
+          `**${r.name}** - ${r.description?.substring(0, 100)}... (${r.rating}/5 stars)
+Phone: ${r.phone}
+Address: ${r.address}`
         ).join('\n\n')}`
       }
     }

@@ -15,6 +15,107 @@ interface ChatBotProps {
   onShowOnMap?: (business: Business, action?: string) => void
 }
 
+// Component to format and render bot messages with rich text
+const FormattedMessage = ({ text, businesses, onShowOnMap }: { 
+  text: string, 
+  businesses: Business[], 
+  onShowOnMap?: (business: Business, action?: string) => void 
+}) => {
+  // Split text by double newlines to create paragraphs
+  const paragraphs = text.split('\n\n').filter(p => p.trim())
+  
+  const formatText = (text: string) => {
+    // Handle markdown-style formatting
+    return text
+      // Bold text **text**
+      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900">$1</strong>')
+      // Business names with phone/address formatting
+      .replace(/Phone: ([\d\s\-\(\)]+)/g, '<span class="text-blue-600 font-medium">📞 $1</span>')
+      .replace(/Address: ([^|]+)/g, '<span class="text-green-600 font-medium">📍 $1</span>')
+      // Rating formatting
+      .replace(/(\d+\.?\d*)\/5 star/g, '<span class="text-yellow-600 font-medium">⭐ $1/5</span>')
+      // Website formatting
+      .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-500 underline hover:text-blue-700">🔗 Website</a>')
+  }
+
+  const extractBusinessInfo = (text: string) => {
+    // Look for business name patterns in the text
+    const businessMatches = businesses.filter(business => 
+      text.toLowerCase().includes(business.name.toLowerCase())
+    )
+    return businessMatches.slice(0, 3) // Limit to 3 business cards
+  }
+
+  const businessCards = extractBusinessInfo(text)
+
+  return (
+    <div className="space-y-2">
+      {paragraphs.map((paragraph, index) => (
+        <div key={index}>
+          <p 
+            className="text-sm leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: formatText(paragraph) }}
+          />
+          
+          {/* Show business cards after relevant paragraphs */}
+          {index === 0 && businessCards.length > 0 && (
+            <div className="mt-3 space-y-2">
+              {businessCards.map((business) => (
+                <div 
+                  key={business.id}
+                  className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => onShowOnMap?.(business, 'show')}
+                >
+                  <div className="flex justify-between items-start mb-1">
+                    <h4 className="font-semibold text-gray-900 text-sm">{business.name}</h4>
+                    <div className="flex items-center text-xs">
+                      <span className="text-yellow-500">⭐</span>
+                      <span className="ml-1 font-medium">{business.rating}</span>
+                    </div>
+                  </div>
+                  
+                  <p className="text-xs text-gray-600 mb-2">{business.category}</p>
+                  
+                  <div className="space-y-1 text-xs">
+                    {business.phone && (
+                      <div className="flex items-center text-blue-600">
+                        <span className="mr-1">📞</span>
+                        <span>{business.phone}</span>
+                      </div>
+                    )}
+                    {business.address && (
+                      <div className="flex items-center text-green-600">
+                        <span className="mr-1">📍</span>
+                        <span className="truncate">{business.address}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex gap-1 mt-2 flex-wrap">
+                    {business.featured && (
+                      <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">Featured</span>
+                    )}
+                    {business.veteranOwned && (
+                      <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">Veteran Owned</span>
+                    )}
+                    {business.isNonprofit && (
+                      <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Non-Profit</span>
+                    )}
+                  </div>
+                  
+                  <div className="mt-2 text-xs text-gray-500 hover:text-blue-600">
+                    Click to view on map →
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function ChatBot({ businesses: propBusinesses = [], onShowOnMap }: ChatBotProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [businesses, setBusinesses] = useState<Business[]>(propBusinesses)
@@ -261,13 +362,21 @@ export default function ChatBot({ businesses: propBusinesses = [], onShowOnMap }
             className={`mb-3 ${message.isUser ? 'text-right' : 'text-left'}`}
           >
             <div
-              className={`inline-block p-3 rounded-lg max-w-xs ${
+              className={`inline-block p-3 rounded-lg ${
                 message.isUser
-                  ? 'bg-primary-600 text-white rounded-br-none'
-                  : 'bg-gray-100 text-gray-800 rounded-bl-none'
+                  ? 'bg-primary-600 text-white rounded-br-none max-w-xs'
+                  : 'bg-gray-100 text-gray-800 rounded-bl-none max-w-sm'
               }`}
             >
-              <p className="text-sm">{message.text}</p>
+              {message.isUser ? (
+                <p className="text-sm">{message.text}</p>
+              ) : (
+                <FormattedMessage 
+                  text={message.text} 
+                  businesses={businesses}
+                  onShowOnMap={onShowOnMap}
+                />
+              )}
             </div>
             <p className="text-xs text-gray-500 mt-1">
               {message.timestamp.toLocaleTimeString([], { 
