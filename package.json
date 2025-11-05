@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "migrate:businesses": "node scripts/migrate-enriched-data.js"
+    "migrate:businesses": "node scripts/migrate-enriched-data.js",
+    "migrate:full": "node scripts/migrate-full-enriched-data.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.4",
