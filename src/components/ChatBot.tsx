@@ -18,10 +18,11 @@ interface ChatBotProps {
 export default function ChatBot({ businesses: propBusinesses = [], onShowOnMap }: ChatBotProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [businesses, setBusinesses] = useState<Business[]>(propBusinesses)
+  const [showQuickActions, setShowQuickActions] = useState(true)
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Hello! I\'m your CNY Business Concierge. I can help you find local businesses, get directions, check hours, and answer questions about our business directory. How can I assist you today?',
+      text: 'Hello! I\'m your CNY Business Concierge. I can help you find local businesses, get directions, check hours, and answer questions about our business directory. Use the quick actions below or ask me anything!',
       isUser: false,
       timestamp: new Date()
     }
@@ -70,8 +71,86 @@ export default function ChatBot({ businesses: propBusinesses = [], onShowOnMap }
     scrollToBottom()
   }, [messages])
 
+  // Quick action buttons data
+  const quickActions = [
+    { id: 'restaurants', text: '🍽️ Find Restaurants', query: 'Show me the best restaurants in the area' },
+    { id: 'coffee', text: '☕ Coffee Shops', query: 'Where can I get good coffee?' },
+    { id: 'veteran', text: '🇺🇸 Veteran-Owned', query: 'Show me veteran-owned businesses' },
+    { id: 'featured', text: '⭐ Featured Businesses', query: 'What are the featured businesses?' },
+    { id: 'shopping', text: '🛍️ Shopping', query: 'Where can I go shopping?' },
+    { id: 'services', text: '🔧 Services', query: 'What services are available?' }
+  ]
+
+  const handleQuickAction = async (query: string) => {
+    setShowQuickActions(false)
+    
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: query,
+      isUser: true,
+      timestamp: new Date()
+    }
+
+    setMessages(prev => [...prev, userMessage])
+    setIsTyping(true)
+
+    try {
+      console.log('Sending quick action with businesses:', businesses.length, 'businesses')
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: query,
+          businesses: businesses,
+          hasMapAccess: !!onShowOnMap
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to get response')
+      }
+
+      const data = await response.json()
+      
+      // Check if the response includes a business to show on the map
+      if (data.showOnMap && onShowOnMap) {
+        const businessToShow = businesses.find(b => 
+          b.name.toLowerCase().includes(data.showOnMap.toLowerCase()) ||
+          b.id === data.showOnMap
+        )
+        if (businessToShow) {
+          onShowOnMap(businessToShow, 'show')
+        }
+      }
+      
+      const botResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: data.response,
+        isUser: false,
+        timestamp: new Date()
+      }
+      
+      setMessages(prev => [...prev, botResponse])
+    } catch (error) {
+      console.error('Chat error:', error)
+      const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "I'm sorry, I'm having trouble connecting right now. Please try again or browse our business directory!",
+        isUser: false,
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, errorResponse])
+    } finally {
+      setIsTyping(false)
+    }
+  }
+
   const handleSendMessage = async () => {
     if (!inputText.trim()) return
+
+    setShowQuickActions(false) // Hide quick actions after first user message
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -198,6 +277,36 @@ export default function ChatBot({ businesses: propBusinesses = [], onShowOnMap }
             </p>
           </div>
         ))}
+        
+        {/* Quick Action Buttons */}
+        {showQuickActions && (
+          <div className="mb-3">
+            <div className="text-xs text-gray-500 mb-2 text-center">Quick Actions</div>
+            <div className="grid grid-cols-2 gap-2">
+              {quickActions.map((action) => (
+                <button
+                  key={action.id}
+                  onClick={() => handleQuickAction(action.query)}
+                  className="bg-primary-50 hover:bg-primary-100 text-primary-700 border border-primary-200 rounded-lg p-2 text-xs transition-colors duration-200 text-left"
+                >
+                  {action.text}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Show Quick Actions Button */}
+        {!showQuickActions && messages.length > 1 && (
+          <div className="mb-3 text-center">
+            <button
+              onClick={() => setShowQuickActions(true)}
+              className="text-xs text-primary-600 hover:text-primary-800 underline"
+            >
+              Show Quick Actions
+            </button>
+          </div>
+        )}
         
         {isTyping && (
           <div className="text-left mb-3">
