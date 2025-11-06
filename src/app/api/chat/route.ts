@@ -1,46 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { generateChatResponse } from '@/lib/openai'
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const { message, businesses, hasMapAccess } = await request.json()
-    
-    console.log('Chat API received:')
-    console.log('- Message:', message)
-    console.log('- Businesses type:', typeof businesses)
-    console.log('- Businesses length:', businesses ? businesses.length : 'undefined')
-    console.log('- Has map access:', hasMapAccess)
+    const { message } = await req.json();
+    console.log('Chat API received message:', message);
 
-    if (!message || typeof message !== 'string') {
-      return NextResponse.json(
-        { error: 'Message is required' },
-        { status: 400 }
-      )
-    }
+    // Return a static, hardcoded response to prevent API-related crashes
+    const staticResponse = `This is a mock response to your question: "${message}". The live AI chat is temporarily disabled for debugging.`;
 
-    const response = await generateChatResponse(message, businesses || [], hasMapAccess)
+    return NextResponse.json({ response: staticResponse, showOnMap: null });
 
-    // Check if the response mentions a specific business that should be shown on map
-    let showOnMap = null
-    if (hasMapAccess && businesses) {
-      // Look for business names in the response
-      for (const business of businesses) {
-        if (response.toLowerCase().includes(business.name.toLowerCase())) {
-          showOnMap = business.name
-          break
-        }
-      }
-    }
-
-    return NextResponse.json({ 
-      response,
-      showOnMap 
-    })
   } catch (error) {
-    console.error('Chat API error:', error)
+    console.error('Error in chat API route:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to process chat message.' },
       { status: 500 }
-    )
+    );
   }
 }
