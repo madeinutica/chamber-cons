@@ -19,6 +19,21 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState('')
   const [mapFocus, setMapFocus] = useState<{ business: Business; action: string } | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('directory')
+  const [hasRequiredEnvVars, setHasRequiredEnvVars] = useState(true)
+
+  // Check for required environment variables
+  useEffect(() => {
+    const hasSupabase = !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+    const hasMapbox = !!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+    
+    if (!hasSupabase || !hasMapbox) {
+      console.warn('Missing required environment variables:')
+      console.warn('Supabase URL:', !!process.env.NEXT_PUBLIC_SUPABASE_URL)
+      console.warn('Supabase Anon Key:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+      console.warn('Mapbox Token:', !!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN)
+      setHasRequiredEnvVars(false)
+    }
+  }, [])
 
   // Function for chatbot to focus on a business
   const focusOnBusiness = useCallback((business: Business, action: string = 'show') => {
@@ -151,6 +166,45 @@ export default function Home() {
     console.log('Final filtered businesses:', filtered.length)
     setFilteredBusinesses(filtered)
   }, [businesses, searchTerm, selectedCategory])
+
+  if (!hasRequiredEnvVars) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <div className="text-center max-w-md p-8 bg-white rounded-lg shadow-lg">
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">Configuration Required</h1>
+          <p className="text-gray-600 mb-6">
+            This application requires environment variables to be set up properly. 
+            Please check your <code className="bg-gray-100 px-2 py-1 rounded">.env.local</code> file.
+          </p>
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-yellow-700">
+                  Required environment variables:
+                  <ul className="list-disc list-inside mt-2">
+                    <li>NEXT_PUBLIC_SUPABASE_URL</li>
+                    <li>NEXT_PUBLIC_SUPABASE_ANON_KEY</li>
+                    <li>NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN</li>
+                  </ul>
+                </p>
+              </div>
+            </div>
+          </div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <AuthProvider>

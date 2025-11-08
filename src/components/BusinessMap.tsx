@@ -11,9 +11,6 @@ interface BusinessMapProps {
   mapFocus?: { business: Business; action: string } | null
 }
 
-// Set Mapbox access token
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ''
-
 export default function BusinessMap({ 
   businesses, 
   selectedBusiness, 
@@ -25,13 +22,21 @@ export default function BusinessMap({
   const markers = useRef<mapboxgl.Marker[]>([])
   const [mapLoaded, setMapLoaded] = useState(false)
   const [isClient, setIsClient] = useState(false)
+  const [hasMapboxToken, setHasMapboxToken] = useState(false)
 
   useEffect(() => {
     setIsClient(true)
+    setHasMapboxToken(!!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN)
+    
+    // Set Mapbox access token if available
+    if (process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN) {
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+    }
   }, [])
 
   useEffect(() => {
     if (!isClient) return
+    if (!hasMapboxToken) return
     if (map.current) return
     if (!mapContainer.current) return
 
@@ -51,7 +56,7 @@ export default function BusinessMap({
     return () => {
       map.current?.remove()
     }
-  }, [isClient])
+  }, [isClient, hasMapboxToken])
 
   const getMarkerStyle = useCallback((business: Business) => {
     const isNonprofit = business.isNonprofit
@@ -140,7 +145,7 @@ export default function BusinessMap({
   }, [])
 
   useEffect(() => {
-    if (!map.current || !mapLoaded) return
+    if (!map.current || !mapLoaded || !hasMapboxToken) return
 
     markers.current.forEach(marker => marker.remove())
     markers.current = []
@@ -227,21 +232,21 @@ export default function BusinessMap({
 
       markers.current.push(marker)
     })
-  }, [businesses, selectedBusiness, mapLoaded, onBusinessSelect, getMarkerStyle])
+  }, [businesses, selectedBusiness, mapLoaded, onBusinessSelect, getMarkerStyle, hasMapboxToken])
 
   useEffect(() => {
-    if (!map.current || !selectedBusiness) return
+    if (!map.current || !selectedBusiness || !hasMapboxToken) return
 
     map.current.flyTo({
       center: [selectedBusiness.coordinates.lng, selectedBusiness.coordinates.lat],
       zoom: 15,
       essential: true
     })
-  }, [selectedBusiness])
+  }, [selectedBusiness, hasMapboxToken])
 
   // Handle map focus from chatbot
   useEffect(() => {
-    if (!map.current || !mapFocus) return
+    if (!map.current || !mapFocus || !hasMapboxToken) return
 
     const { business } = mapFocus
     map.current.flyTo({
@@ -249,7 +254,7 @@ export default function BusinessMap({
       zoom: 16,
       essential: true
     })
-  }, [mapFocus])
+  }, [mapFocus, hasMapboxToken])
 
   if (!isClient) {
     return (
@@ -261,7 +266,7 @@ export default function BusinessMap({
     )
   }
 
-  if (!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN) {
+  if (!hasMapboxToken) {
     return (
       <div className="flex items-center justify-center h-full bg-gray-100">
         <div className="text-center">

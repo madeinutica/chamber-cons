@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react'
 
 export default function EnvTest() {
   const [isClient, setIsClient] = useState(false)
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
   useEffect(() => {
@@ -16,15 +18,21 @@ export default function EnvTest() {
         <h3 className="text-lg font-semibold mb-4">Environment Variables Test</h3>
         <div className="space-y-2 text-left">
           <div>
-            <strong>Mapbox Token:</strong> 
+            <strong>Supabase URL:</strong> 
             <span className="ml-2 text-sm">
-              {mapboxToken ? `${mapboxToken.substring(0, 20)}...` : 'Not found'}
+              {supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : 'Not found'}
             </span>
           </div>
           <div>
-            <strong>Token Type:</strong> 
+            <strong>Supabase Anon Key:</strong> 
             <span className="ml-2 text-sm">
-              {mapboxToken?.startsWith('pk.') ? 'Valid Public Token' : 'Invalid Token Format'}
+              {supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : 'Not found'}
+            </span>
+          </div>
+          <div>
+            <strong>Mapbox Token:</strong> 
+            <span className="ml-2 text-sm">
+              {mapboxToken ? `${mapboxToken.substring(0, 20)}...` : 'Not found'}
             </span>
           </div>
           <div>

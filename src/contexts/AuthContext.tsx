@@ -18,32 +18,47 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createClientComponentClient()
+  const [supabase, setSupabase] = useState<ReturnType<typeof createClientComponentClient> | null>(null)
 
   useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        await loadUserProfile(session.user)
-      }
+    // Check if Supabase environment variables are available
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.warn('Supabase environment variables not found. Auth features disabled.')
       setLoading(false)
+      return
     }
 
-    getInitialSession()
+    try {
+      const client = createClientComponentClient()
+      setSupabase(client)
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        await loadUserProfile(session.user)
-      } else {
-        setUser(null)
+      // Get initial session
+      const getInitialSession = async () => {
+        const { data: { session } } = await client.auth.getSession()
+        if (session?.user) {
+          await loadUserProfile(session.user)
+        }
+        setLoading(false)
       }
-      setLoading(false)
-    })
 
-    return () => subscription.unsubscribe()
-  }, [supabase.auth])
+      getInitialSession()
+
+      // Listen for auth changes
+      const { data: { subscription } } = client.auth.onAuthStateChange(async (event, session) => {
+        if (session?.user) {
+          await loadUserProfile(session.user)
+        } else {
+          setUser(null)
+        }
+        setLoading(false)
+      })
+
+      return () => subscription.unsubscribe()
+    } catch (error) {
+      console.error('Error initializing Supabase auth:', error)
+      setLoading(false)
+    }
+  }, [])
 
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
@@ -72,6 +87,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signUp = async (email: string, password: string, username: string, display_name?: string) => {
+    if (!supabase) {
+      return { user: null, error: 'Authentication not available' }
+    }
+
     try {
       setLoading(true)
       const { data, error } = await supabase.auth.signUp({
@@ -99,6 +118,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signIn = async (email: string, password: string) => {
+    if (!supabase) {
+      return { user: null, error: 'Authentication not available' }
+    }
+
     try {
       setLoading(true)
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -120,6 +143,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
+    if (!supabase) return
+
     try {
       setLoading(true)
       await supabase.auth.signOut()
@@ -132,6 +157,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const updateProfile = async (data: UpdateUserProfileData) => {
+    if (!supabase) {
+      return { user: null, error: 'Authentication not available' }
+    }
+
     try {
       if (!user) {
         return { user: null, error: 'No user logged in' }
