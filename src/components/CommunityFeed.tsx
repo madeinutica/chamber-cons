@@ -1,14 +1,14 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Post } from '@/types/social'
+import { Post, PostWithEngagement } from '@/types/social'
 import { useAuth } from '@/contexts/AuthContext'
 import CreatePost from '@/components/CreatePost'
 import PostCard from '@/components/PostCard'
 
 export default function CommunityFeed() {
   const { user } = useAuth()
-  const [posts, setPosts] = useState<Post[]>([])
+  const [posts, setPosts] = useState<PostWithEngagement[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreatePost, setShowCreatePost] = useState(false)
 
@@ -19,42 +19,62 @@ export default function CommunityFeed() {
   const fetchPosts = async () => {
     setLoading(true);
     // MOCK DATA to prevent crash from missing 'posts' table
-    const mockPosts: Post[] = [
+    const mockPosts: PostWithEngagement[] = [
       {
         id: '1',
-        user_id: 'mock-user-1',
-        type: 'review',
+        author_id: 'mock-user-1',
+        post_type: 'review',
         content: 'This is a mock review for a great local spot! Highly recommend the coffee.',
         business_id: 'some-business-id',
         rating: 5,
         vote_score: 15,
         comment_count: 2,
+        upvotes: 15,
+        downvotes: 0,
+        view_count: 50,
+        is_featured: false,
+        is_pinned: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        user: {
+        author: {
           id: 'mock-user-1',
+          email: 'jane@example.com',
           username: 'jane_doe',
           display_name: 'Jane Doe',
-          avatar_url: null,
+          avatar_url: undefined,
           role: 'community',
+          is_verified: false,
+          reputation_score: 100,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         }
       },
       {
         id: '2',
-        user_id: 'mock-user-2',
-        type: 'photo',
+        author_id: 'mock-user-2',
+        post_type: 'photo',
         content: 'A photo from the beautiful downtown area.',
         business_id: 'another-business-id',
         vote_score: 8,
         comment_count: 1,
+        upvotes: 8,
+        downvotes: 0,
+        view_count: 30,
+        is_featured: false,
+        is_pinned: false,
         created_at: new Date(Date.now() - 3600 * 1000).toISOString(),
         updated_at: new Date(Date.now() - 3600 * 1000).toISOString(),
-        user: {
+        author: {
           id: 'mock-user-2',
+          email: 'john@example.com',
           username: 'john_smith',
           display_name: 'John Smith',
-          avatar_url: null,
+          avatar_url: undefined,
           role: 'community',
+          is_verified: false,
+          reputation_score: 50,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         }
       }
     ];
@@ -144,7 +164,7 @@ export default function CommunityFeed() {
               onClick={() => setShowCreatePost(true)}
               className="flex-1 text-left px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-600 transition-colors"
             >
-              What's happening in your community?
+              What&apos;s happening in your community?
             </button>
           </div>
         </div>

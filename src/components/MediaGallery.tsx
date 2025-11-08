@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import Image from 'next/image'
 
 interface MediaFile {
   id: string
@@ -84,10 +85,13 @@ function Lightbox({ file, isOpen, onClose, onPrevious, onNext }: LightboxProps) 
               autoPlay
             />
           ) : (
-            <img
+            <Image
               src={file.url}
               alt={file.original_filename}
+              width={800}
+              height={600}
               className="max-w-full max-h-full object-contain"
+              unoptimized
             />
           )}
         </div>
@@ -189,10 +193,13 @@ export default function MediaGallery({
                     </div>
                   </div>
                 ) : (
-                  <img
+                  <Image
                     src={file.url}
                     alt={file.original_filename}
+                    width={300}
+                    height={300}
                     className="w-full h-full object-cover"
+                    unoptimized
                   />
                 )}
               </div>

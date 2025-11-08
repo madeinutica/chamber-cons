@@ -120,8 +120,6 @@ const FormattedMessage = ({ text, businesses, onShowOnMap }: {
 }
 
 export default function ChatBot({ businesses: propBusinesses = [], onShowOnMap }: ChatBotProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [isExpanded, setIsExpanded] = useState(false)
   const [businesses, setBusinesses] = useState<Business[]>(propBusinesses)
   const [showQuickActions, setShowQuickActions] = useState(true)
   const [messages, setMessages] = useState<Message[]>([
@@ -329,70 +327,10 @@ export default function ChatBot({ businesses: propBusinesses = [], onShowOnMap }
     }
   }
 
-  if (!isOpen) {
-    return (
-      <div className="fixed bottom-6 right-6 z-50">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="bg-gradient-to-br from-indigo-500 via-blue-600 to-blue-600 text-white p-4 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 border border-white/20 backdrop-blur-sm"
-        >
-          <div className="relative">
-            <span className="text-2xl">💬</span>
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-          </div>
-        </button>
-      </div>
-    )
-  }
-
   return (
-    <div className={`fixed bottom-6 right-6 bg-gradient-to-br from-white via-gray-50 to-indigo-50 rounded-2xl shadow-2xl border border-white/20 backdrop-blur-xl z-50 flex flex-col transition-all duration-300 ${
-      isExpanded 
-        ? 'w-96 h-[600px]' 
-        : 'w-80 h-96'
-    }`}>
-      {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 via-blue-600 to-blue-700 text-white p-4 rounded-t-2xl shadow-lg flex justify-between items-center">
-        <div>
-          <div className="flex items-center space-x-2 mb-1">
-            <div className="relative">
-              <span className="text-xl">🏛️</span>
-              <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            </div>
-            <h3 className="font-bold text-lg tracking-wide">Biz Concierge</h3>
-          </div>
-          <p className="text-indigo-100 text-xs font-medium">AI Assistant</p>
-        </div>
-        <div className="flex items-center space-x-2">
-          {/* Expand/Collapse Button */}
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="p-2 hover:bg-white/20 rounded-lg transition-colors duration-200"
-            title={isExpanded ? "Make smaller" : "Expand chat"}
-          >
-            {isExpanded ? (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            ) : (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 13l3 3 7-7" />
-              </svg>
-            )}
-          </button>
-          {/* Close Button */}
-          <button
-            onClick={() => setIsOpen(false)}
-            className="p-2 hover:bg-white/20 rounded-lg transition-colors duration-200"
-            title="Close chat"
-          >
-            <span className="text-lg">✕</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 p-4 overflow-y-auto">
+    <div className="h-full flex flex-col bg-white">
+      {/* Messages Container - Clean white background */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-white">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -469,8 +407,8 @@ export default function ChatBot({ businesses: propBusinesses = [], onShowOnMap }
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="p-4 border-t border-gradient bg-gradient-to-r from-gray-50 to-indigo-50 rounded-b-2xl">
+      {/* Input - Clean white design */}
+      <div className="p-6 border-t border-gray-200 bg-white">
         <div className="flex space-x-3">
           <input
             type="text"
@@ -478,14 +416,14 @@ export default function ChatBot({ businesses: propBusinesses = [], onShowOnMap }
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Ask your CNY Business Concierge anything..."
-            className="flex-1 p-3 border border-gray-300 rounded-xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm"
+            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white"
           />
           <button
             onClick={handleSendMessage}
             disabled={!inputText.trim()}
-            className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-3 rounded-xl hover:from-indigo-700 hover:to-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+            className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-indigo-700 hover:to-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 font-medium text-sm"
           >
-            <span className="text-sm">📤</span>
+            Send
           </button>
         </div>
       </div>

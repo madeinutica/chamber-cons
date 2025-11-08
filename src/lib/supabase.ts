@@ -1,17 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Check if environment variables are available
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
 
-// Only create client if environment variables are present
-let supabase: ReturnType<typeof createClient> | null = null
-
-if (supabaseUrl && supabaseAnonKey) {
-  supabase = createClient(supabaseUrl, supabaseAnonKey)
-} else {
-  console.warn('Supabase environment variables not found. Supabase client not initialized.')
-}
+// Always create client for type safety - will fail gracefully if misconfigured
+// Using placeholders during build time when env vars might not be available
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Database types
 export interface DatabaseBusiness {

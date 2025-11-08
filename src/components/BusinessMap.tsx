@@ -281,44 +281,6 @@ export default function BusinessMap({
     <div className="w-full h-full relative">
       <div ref={mapContainer} className="w-full h-full" />
       
-      <div className="absolute top-4 left-4 bg-gradient-to-br from-white to-indigo-50 rounded-2xl shadow-2xl border border-white/20 backdrop-blur-xl p-4 text-sm max-h-96 overflow-y-auto">
-        <h4 className="font-bold mb-3 text-gray-900 text-base tracking-wide">Map Legend</h4>
-        <div className="space-y-3">
-          <div className="text-sm font-semibold text-indigo-700 uppercase tracking-wide">Business Types</div>
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-xs">🏢</div>
-            <span className="text-sm text-gray-700 font-medium">For-Profit</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 bg-gradient-to-br from-gray-500 to-gray-600 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-xs">🤝</div>
-            <span className="text-sm text-gray-700 font-medium">Non-Profit</span>
-          </div>
-          
-          <div className="text-sm font-semibold text-indigo-700 uppercase tracking-wide mt-4">Special Markers</div>
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-full border-2 border-yellow-300 shadow-lg flex items-center justify-center text-xs">⭐</div>
-            <span className="text-sm text-gray-700 font-medium">Featured</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full border-2 border-red-500 shadow-lg flex items-center justify-center text-xs relative">
-              🏢
-              <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-gradient-to-br from-red-600 to-red-700 rounded-full shadow-md flex items-center justify-center text-xs">🇺🇸</div>
-            </div>
-            <span className="text-sm text-gray-700 font-medium">Veteran Owned</span>
-          </div>
-          
-          <div className="text-sm font-semibold text-indigo-700 uppercase tracking-wide mt-4">Categories</div>
-          <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
-            <div className="flex items-center gap-2 bg-white/50 rounded-lg p-2"><span>🍽️</span><span>Restaurant</span></div>
-            <div className="flex items-center gap-2 bg-white/50 rounded-lg p-2"><span>☕</span><span>Coffee</span></div>
-            <div className="flex items-center gap-2 bg-white/50 rounded-lg p-2"><span>🏠</span><span>Home Services</span></div>
-            <div className="flex items-center gap-1"><span>🎓</span><span>Education</span></div>
-            <div className="flex items-center gap-1"><span>🏥</span><span>Health</span></div>
-            <div className="flex items-center gap-1"><span>🎨</span><span>Arts</span></div>
-          </div>
-        </div>
-      </div>
-
       <div className="absolute bottom-4 left-4 bg-gradient-to-r from-indigo-600 to-blue-700 rounded-xl shadow-2xl px-4 py-3 text-sm border border-white/20 backdrop-blur-sm">
         <span className="text-white font-bold">
           📍 <span className="font-bold">{businesses.length}</span> business{businesses.length !== 1 ? 'es' : ''} shown

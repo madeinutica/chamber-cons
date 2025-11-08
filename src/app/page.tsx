@@ -1,39 +1,62 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import BusinessMap from '@/components/BusinessMap'
 import BusinessList from '@/components/BusinessList'
 import ChatBot from '@/components/ChatBot'
 import Header from '@/components/Header'
 import CommunityFeed from '@/components/CommunityFeed'
+import Landing from '@/app/landing/page'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { Business } from '@/types/business'
 
 type ViewMode = 'directory' | 'community'
 
 export default function Home() {
+  const searchParams = useSearchParams()
   const [businesses, setBusinesses] = useState<Business[]>([])
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null)
   const [filteredBusinesses, setFilteredBusinesses] = useState<Business[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
+  const [selectedDesignations, setSelectedDesignations] = useState<string[]>([])
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([])
   const [mapFocus, setMapFocus] = useState<{ business: Business; action: string } | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('directory')
-  const [hasRequiredEnvVars, setHasRequiredEnvVars] = useState(true)
+  const [showLanding, setShowLanding] = useState(true)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isChatOpen, setIsChatOpen] = useState(false)
 
-  // Check for required environment variables
+  // Handle URL parameters from semantic search
   useEffect(() => {
-    const hasSupabase = !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-    const hasMapbox = !!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
-    
-    if (!hasSupabase || !hasMapbox) {
-      console.warn('Missing required environment variables:')
-      console.warn('Supabase URL:', !!process.env.NEXT_PUBLIC_SUPABASE_URL)
-      console.warn('Supabase Anon Key:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-      console.warn('Mapbox Token:', !!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN)
-      setHasRequiredEnvVars(false)
+    const categories = searchParams.get('categories')
+    const designations = searchParams.get('designations')
+    const query = searchParams.get('q')
+
+    // Show landing page only if no params
+    const shouldShowLanding = !categories && !designations && !query
+    setShowLanding(shouldShowLanding)
+
+    // Only process filters if we're not showing landing
+    if (!shouldShowLanding) {
+      if (categories) {
+        const categoryList = categories.split(',')
+        // Set the first category as selected
+        if (categoryList.length > 0) {
+          setSelectedCategory(categoryList[0])
+        }
+      }
+
+      if (designations) {
+        setSelectedDesignations(designations.split(','))
+      }
+
+      if (query) {
+        setSearchTerm(query)
+      }
     }
-  }, [])
+  }, [searchParams])
 
   // Function for chatbot to focus on a business
   const focusOnBusiness = useCallback((business: Business, action: string = 'show') => {
@@ -142,32 +165,165 @@ export default function Home() {
   }, [loadBusinessesFromDatabase])
 
   useEffect(() => {
-    // Filter businesses based on search and category
+    // Filter businesses based on search, category, and designations
     let filtered = businesses
     
     console.log('Filtering businesses:', businesses.length, 'total')
     console.log('Search term:', searchTerm)
     console.log('Selected category:', selectedCategory)
+    console.log('Selected designations:', selectedDesignations)
     
     if (searchTerm) {
-      filtered = filtered.filter(business =>
-        business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        business.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        business.description.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-      console.log('After search filter:', filtered.length)
+      const searchLower = searchTerm.toLowerCase()
+      
+      // Enhanced keyword mapping for smart search
+      const keywordToCategoryMap: { [key: string]: string[] } = {
+        // Automotive - CRITICAL FIX
+        'car': ['Automotive', 'Auto Repair', 'Auto Services'],
+        'auto': ['Automotive', 'Auto Repair', 'Auto Services'],
+        'mechanic': ['Automotive', 'Auto Repair', 'Auto Services'],
+        'repair car': ['Automotive', 'Auto Repair'],
+        'fix car': ['Automotive', 'Auto Repair'],
+        'fix my car': ['Automotive', 'Auto Repair'],
+        'vehicle': ['Automotive', 'Auto Repair', 'Auto Services'],
+        'oil change': ['Automotive', 'Auto Services'],
+        'tire': ['Automotive', 'Auto Services'],
+        'brake': ['Automotive', 'Auto Repair'],
+        
+        // Legal
+        'lawyer': ['Legal Services', 'Legal', 'Professional Services'],
+        'attorney': ['Legal Services', 'Legal', 'Professional Services'],
+        'legal': ['Legal Services', 'Legal'],
+        'law': ['Legal Services', 'Legal'],
+        
+        // Financial
+        'bank': ['Financial Services', 'Banking'],
+        'finance': ['Financial Services'],
+        'mortgage': ['Financial Services'],
+        'accounting': ['Financial Services', 'Professional Services'],
+        'accountant': ['Financial Services', 'Professional Services'],
+        
+        // Medical/Health
+        'doctor': ['Healthcare', 'Health & Wellness', 'Medical'],
+        'medical': ['Healthcare', 'Health & Wellness'],
+        'hospital': ['Healthcare', 'Health & Wellness'],
+        'clinic': ['Healthcare', 'Health & Wellness'],
+        'dentist': ['Healthcare', 'Health & Wellness', 'Dental'],
+        
+        // Food
+        'restaurant': ['Restaurant', 'Food & Dining'],
+        'food': ['Restaurant', 'Bakery', 'Coffee & Tea'],
+        'coffee': ['Coffee & Tea', 'Restaurant'],
+        'bakery': ['Bakery', 'Restaurant'],
+        'pizza': ['Restaurant', 'Food & Dining'],
+        'bar': ['Restaurant', 'Entertainment'],
+        
+        // Real Estate
+        'real estate': ['Real Estate', 'Professional Services'],
+        'realtor': ['Real Estate', 'Professional Services'],
+        'property': ['Real Estate', 'Professional Services'],
+        
+        // Insurance
+        'insurance': ['Insurance', 'Financial Services'],
+        
+        // Technology
+        'tech': ['Technology', 'Professional Services'],
+        'software': ['Technology'],
+        'it': ['Technology', 'Professional Services'],
+        
+        // Home Services
+        'plumber': ['Home Services', 'Professional Services'],
+        'electrician': ['Home Services', 'Professional Services'],
+        'contractor': ['Home Services', 'Professional Services'],
+        'hvac': ['Home Services', 'Professional Services'],
+        'roofing': ['Home Services', 'Professional Services']
+      }
+      
+      // Find all matching categories from keyword map
+      let matchedCategories: string[] = []
+      for (const [keyword, categories] of Object.entries(keywordToCategoryMap)) {
+        if (searchLower.includes(keyword)) {
+          matchedCategories = [...matchedCategories, ...categories]
+        }
+      }
+      
+      // Remove duplicates
+      matchedCategories = Array.from(new Set(matchedCategories))
+      
+      filtered = filtered.filter(business => {
+        // Direct text matches (highest priority)
+        const nameMatch = business.name.toLowerCase().includes(searchLower)
+        const categoryMatch = business.category.toLowerCase().includes(searchLower)
+        const descriptionMatch = business.description.toLowerCase().includes(searchLower)
+        
+        // Smart keyword category matching
+        const categoryKeywordMatch = matchedCategories.length > 0 && matchedCategories.some(cat => 
+          business.category.toLowerCase().includes(cat.toLowerCase())
+        )
+        
+        // Address matching
+        const addressMatch = business.address?.toLowerCase().includes(searchLower)
+        
+        return nameMatch || categoryMatch || descriptionMatch || categoryKeywordMatch || addressMatch
+      })
+      console.log('After search filter:', filtered.length, 'matches')
+      if (matchedCategories.length > 0) {
+        console.log('Smart matched categories:', matchedCategories)
+      }
     }
     
-    if (selectedCategory) {
+    if (selectedCategory && selectedCategory !== 'All Categories') {
       filtered = filtered.filter(business => business.category === selectedCategory)
       console.log('After category filter:', filtered.length)
+    }
+
+    // Apply designation filters
+    if (selectedDesignations.length > 0) {
+      filtered = filtered.filter(business => {
+        return selectedDesignations.some(designation => {
+          if (designation === 'veteran_owned') return business.veteranOwned
+          if (designation === 'is_nonprofit') return business.isNonprofit
+          // Add support for woman_owned and minority_owned when added to schema
+          return false
+        })
+      })
+      console.log('After designation filter:', filtered.length)
+    }
+
+    // Apply new filter system
+    if (selectedFilters.length > 0) {
+      filtered = filtered.filter(business => {
+        return selectedFilters.every(filterId => {
+          if (filterId === 'for-profit') return !business.isNonprofit
+          if (filterId === 'nonprofit') return business.isNonprofit
+          if (filterId === 'veteran') return business.veteranOwned
+          if (filterId === 'women') return business.womanOwned || false
+          if (filterId === 'minority') return business.minorityOwned || false
+          return true
+        })
+      })
+      console.log('After filter system:', filtered.length)
     }
     
     console.log('Final filtered businesses:', filtered.length)
     setFilteredBusinesses(filtered)
-  }, [businesses, searchTerm, selectedCategory])
+  }, [businesses, searchTerm, selectedCategory, selectedDesignations, selectedFilters])
 
-  if (!hasRequiredEnvVars) {
+  // Show landing page if no search params
+  if (showLanding) {
+    return <Landing />
+  }
+
+  // Check for required environment variables only when showing main app
+  const hasSupabase = !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  const hasMapbox = !!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+  
+  if (!hasSupabase || !hasMapbox) {
+    console.warn('Missing required environment variables:')
+    console.warn('Supabase URL:', !!process.env.NEXT_PUBLIC_SUPABASE_URL)
+    console.warn('Supabase Anon Key:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+    console.warn('Mapbox Token:', !!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN)
+    
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
         <div className="text-center max-w-md p-8 bg-white rounded-lg shadow-lg">
@@ -196,80 +352,175 @@ export default function Home() {
             </div>
           </div>
           <button 
-            onClick={() => window.location.reload()}
+            onClick={() => window.location.href = '/'}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           >
-            Reload Page
+            Back to Home
           </button>
         </div>
       </div>
     )
   }
 
+  const handleFilterToggle = (filterId: string) => {
+    setSelectedFilters(prev => 
+      prev.includes(filterId) 
+        ? prev.filter(id => id !== filterId)
+        : [...prev, filterId]
+    )
+  }
+
   return (
     <AuthProvider>
-      <main className="flex h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        {/* Left Sidebar */}
-        <div className="w-1/3 bg-white/90 backdrop-blur-sm shadow-2xl overflow-hidden flex flex-col border-r border-slate-200/50">
+      <main className="flex flex-col h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        {/* Header spans full width */}
+        <div className="fixed top-0 left-0 right-0 z-50">
           <Header 
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
             selectedCategory={selectedCategory}
             onCategoryChange={setSelectedCategory}
+            selectedFilters={selectedFilters}
+            onFilterToggle={handleFilterToggle}
           />
-          
-          {/* View Mode Tabs */}
-          <div className="flex border-b border-gray-200 bg-white">
-            <button
-              onClick={() => setViewMode('directory')}
-              className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
-                viewMode === 'directory'
-                  ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              🏢 Business Directory
-            </button>
-            <button
-              onClick={() => setViewMode('community')}
-              className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
-                viewMode === 'community'
-                  ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              👥 Community Feed
-            </button>
+        </div>
+
+        {/* Main Content Area - Split Layout */}
+        <div className="flex-1 mt-16 overflow-hidden flex relative">
+          {/* Left Sidebar - Business List (Collapsible) */}
+          <div 
+            className={`flex flex-col bg-white border-r border-gray-200 transition-all duration-300 ${
+              isSidebarCollapsed ? 'w-0' : 'w-1/3'
+            } ${isSidebarCollapsed ? 'overflow-hidden' : ''}`}
+          >
+            {/* View Mode Tabs */}
+            <div className="flex border-b border-gray-200">
+              <button
+                onClick={() => setViewMode('directory')}
+                className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
+                  viewMode === 'directory'
+                    ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                🏢 Business Directory
+              </button>
+              <button
+                onClick={() => setViewMode('community')}
+                className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
+                  viewMode === 'community'
+                    ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                👥 Community Feed
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto">
+              {viewMode === 'directory' ? (
+                <BusinessList
+                  businesses={filteredBusinesses}
+                  selectedBusiness={selectedBusiness}
+                  onBusinessSelect={setSelectedBusiness}
+                  searchTerm={searchTerm}
+                  selectedCategory={selectedCategory}
+                />
+              ) : (
+                <div className="p-4">
+                  <CommunityFeed />
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Content based on view mode */}
-          <div className="flex-1 overflow-hidden">
-            {viewMode === 'directory' ? (
-              <BusinessList
-                businesses={filteredBusinesses}
-                selectedBusiness={selectedBusiness}
-                onBusinessSelect={setSelectedBusiness}
-              />
-            ) : (
-              <div className="h-full overflow-y-auto p-4">
-                <CommunityFeed />
+          {/* Sidebar Toggle Button */}
+          <button
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-30 bg-white border border-gray-300 rounded-r-lg px-2 py-6 shadow-lg hover:bg-gray-50 transition-all"
+            style={{ left: isSidebarCollapsed ? '0' : 'calc(33.333% - 1px)' }}
+          >
+            <svg 
+              className={`w-4 h-4 text-gray-600 transition-transform ${isSidebarCollapsed ? '' : 'rotate-180'}`} 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          {/* Right Side - Map */}
+          <div className="flex-1 relative">
+            <BusinessMap
+              businesses={filteredBusinesses}
+              selectedBusiness={selectedBusiness}
+              onBusinessSelect={setSelectedBusiness}
+              mapFocus={mapFocus}
+            />
+            
+            {/* AI Concierge Floating Button */}
+            {!isChatOpen && (
+              <button
+                onClick={() => setIsChatOpen(true)}
+                className="absolute bottom-6 right-6 z-40 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-full p-4 shadow-2xl hover:shadow-3xl transition-all hover:scale-110 group"
+              >
+                <div className="flex items-center gap-2">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                  </svg>
+                  <span className="hidden group-hover:inline-block font-semibold text-sm whitespace-nowrap">AI Concierge</span>
+                </div>
+              </button>
+            )}
+
+            {/* AI Concierge Drawer Overlay (2/3 width) - Clean White Design */}
+            {isChatOpen && (
+              <div className="absolute inset-0 z-50 flex justify-end">
+                {/* Minimal backdrop - just for click-to-close */}
+                <div 
+                  className="absolute inset-0 bg-transparent"
+                  onClick={() => setIsChatOpen(false)}
+                />
+                
+                {/* Drawer Panel - Full height, clean white */}
+                <div className="relative w-2/3 h-full bg-white border-l border-gray-200 flex flex-col">
+                  {/* Clean Header with Close Button */}
+                  <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow-sm">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h2 className="text-base font-bold text-gray-900">AI Business Concierge</h2>
+                        <p className="text-xs text-gray-500">Ask me anything about local businesses</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setIsChatOpen(false)}
+                      className="w-8 h-8 hover:bg-gray-100 rounded-lg flex items-center justify-center transition-colors text-gray-600 hover:text-gray-900"
+                      aria-label="Close chat"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* ChatBot Content - Centered with max width for readability */}
+                  <div className="flex-1 overflow-hidden bg-white">
+                    <div className="h-full max-w-4xl mx-auto">
+                      <ChatBot 
+                        businesses={businesses}
+                        onShowOnMap={focusOnBusiness}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
-        </div>
-
-        {/* Right Map Area */}
-        <div className="flex-1 relative overflow-hidden">
-          <BusinessMap
-            businesses={filteredBusinesses}
-            selectedBusiness={selectedBusiness}
-            onBusinessSelect={setSelectedBusiness}
-            mapFocus={mapFocus}
-          />
-          <ChatBot 
-            businesses={businesses}
-            onShowOnMap={focusOnBusiness}
-          />
         </div>
       </main>
     </AuthProvider>

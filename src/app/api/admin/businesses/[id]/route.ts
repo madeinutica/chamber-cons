@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase, DatabaseBusiness } from '@/lib/supabase'
 
 // GET - Fetch single business
 export async function GET(
@@ -11,9 +11,9 @@ export async function GET(
       .from('businesses')
       .select('*')
       .eq('id', params.id)
-      .single()
+      .single<DatabaseBusiness>()
 
-    if (error) {
+    if (error || !data) {
       console.error('Supabase error:', error)
       return NextResponse.json({ error: 'Business not found' }, { status: 404 })
     }
@@ -53,30 +53,32 @@ export async function PUT(
   try {
     const body = await request.json()
     
+    const updates = {
+      name: body.name,
+      category: body.category,
+      description: body.description,
+      address: body.address,
+      phone: body.phone,
+      website: body.website,
+      rating: body.rating || 0,
+      featured: body.featured || false,
+      sponsored: body.sponsored || false,
+      veteran_owned: body.veteranOwned || false,
+      is_nonprofit: body.isNonprofit || false,
+      meta_description: body.metaDescription,
+      latitude: body.coordinates?.lat || 43.1009,
+      longitude: body.coordinates?.lng || -75.2321,
+      updated_at: new Date().toISOString()
+    }
+    
     const { data, error } = await supabase
       .from('businesses')
-      .update({
-        name: body.name,
-        category: body.category,
-        description: body.description,
-        address: body.address,
-        phone: body.phone,
-        website: body.website,
-        rating: body.rating || 0,
-        featured: body.featured || false,
-        sponsored: body.sponsored || false,
-        veteran_owned: body.veteranOwned || false,
-        is_nonprofit: body.isNonprofit || false,
-        meta_description: body.metaDescription,
-        latitude: body.coordinates?.lat || 43.1009,
-        longitude: body.coordinates?.lng || -75.2321,
-        updated_at: new Date().toISOString()
-      })
+      .update(updates)
       .eq('id', params.id)
       .select()
-      .single()
+      .single<DatabaseBusiness>()
 
-    if (error) {
+    if (error || !data) {
       console.error('Supabase error:', error)
       return NextResponse.json({ error: 'Failed to update business' }, { status: 500 })
     }

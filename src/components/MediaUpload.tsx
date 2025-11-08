@@ -45,7 +45,13 @@ export default function MediaUpload({
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const validateFile = (file: File): string | null => {
+  const formatFileSize = useCallback((bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }, [])
+
+  const validateFile = useCallback((file: File): string | null => {
     if (file.size > maxSizePerFile) {
       return `File "${file.name}" is too large. Maximum size is ${formatFileSize(maxSizePerFile)}.`
     }
@@ -55,15 +61,9 @@ export default function MediaUpload({
     }
     
     return null
-  }
+  }, [maxSizePerFile, acceptedTypes, formatFileSize])
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return `${bytes} B`
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-  }
-
-  const uploadFiles = async (files: File[]) => {
+  const uploadFiles = useCallback(async (files: File[]) => {
     if (!user) {
       onError('Please sign in to upload files')
       return
@@ -143,7 +143,7 @@ export default function MediaUpload({
     } finally {
       setIsUploading(false)
     }
-  }
+  }, [user, maxFiles, onError, onUpload, validateFile])
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault()

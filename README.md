@@ -4,11 +4,12 @@ A modern business directory application featuring an interactive map, AI-powered
 
 ## Features
 
-- 🗺️ **Interactive Map**: Powered by Mapbox GL JS showing business locations
+- � **AI-Powered Semantic Search**: Natural language search landing page that understands queries like "veteran owned restaurant" or "nonprofit helping homeless"
+- �🗺️ **Interactive Map**: Powered by Mapbox GL JS showing business locations
 - 🤖 **AI Business Concierge**: OpenAI-powered chatbot for business inquiries
 - 🏢 **Business Directory**: Comprehensive listings with ratings, contact info, and details
 - ⭐ **Featured Businesses**: Highlighted sponsored and featured business listings
-- 🔍 **Search & Filter**: Advanced search and category filtering
+- 🎯 **Smart Filtering**: Automatically filters by categories and designations (veteran-owned, woman-owned, minority-owned, nonprofit)
 - 📱 **Responsive Design**: Works perfectly on desktop and mobile devices
 
 ## Tech Stack
@@ -108,10 +109,21 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 ## Usage
 
+### Semantic Search Landing Page
+- Visit the homepage to see the AI-powered search interface
+- Enter natural language queries like:
+  - "I need a lawyer"
+  - "veteran owned restaurant"
+  - "woman owned boutique"
+  - "nonprofit helping homeless"
+- The AI understands your intent and applies appropriate filters
+- Get redirected to matching businesses automatically
+- See [SEMANTIC_SEARCH.md](./SEMANTIC_SEARCH.md) for detailed documentation
+
 ### Business Directory
 - Browse featured and regular business listings
 - Search by business name, category, or description
-- Filter by business category
+- Filter by business category and designations (veteran-owned, woman-owned, nonprofit)
 - View detailed business information including ratings, contact details, and descriptions
 
 ### Interactive Map

@@ -54,28 +54,31 @@ export async function GET(request: NextRequest) {
     }
 
     // Transform data to match frontend Business type and filter out invalid coordinates
-    const businesses = data?.map(business => ({
+    const businesses = data?.map((business: any) => ({
       id: business.id,
       name: business.name,
       category: business.category,
-      description: business.description,
-      address: business.address,
-      phone: business.phone,
-      website: business.website,
-      rating: business.rating,
-      featured: business.featured,
-      sponsored: business.sponsored,
-      veteranOwned: business.veteran_owned,
-      isNonprofit: business.is_nonprofit,
+      description: business.description || '',
+      address: business.address || 'Address not available',
+      phone: business.phone || '',
+      website: business.website || '',
+      rating: business.rating || 0,
+      featured: business.featured || false,
+      sponsored: business.sponsored || false,
+      veteranOwned: business.veteran_owned || false,
+      isNonprofit: business.is_nonprofit || false,
       coordinates: {
-        lng: business.longitude,
-        lat: business.latitude
+        lng: business.longitude || 0,
+        lat: business.latitude || 0
       }
-    })).filter(business => 
-      // Filter out businesses with invalid coordinates (0,0) or missing addresses
+    })).filter((business: any) => 
+      // Filter out businesses with invalid coordinates - must have valid lat/lng
+      business.coordinates.lat !== null && 
+      business.coordinates.lng !== null &&
       business.coordinates.lat !== 0 && 
-      business.coordinates.lng !== 0 && 
-      !business.address?.includes('[INVALID]')
+      business.coordinates.lng !== 0 &&
+      typeof business.coordinates.lat === 'number' &&
+      typeof business.coordinates.lng === 'number'
     ) || []
 
     console.log(`Successfully fetched ${businesses.length} businesses`)

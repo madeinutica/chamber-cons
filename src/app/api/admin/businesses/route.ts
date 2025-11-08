@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase, DatabaseBusiness } from '@/lib/supabase'
 
 // GET - Fetch all businesses (same as public API but with more admin details)
 export async function GET() {
@@ -9,12 +9,12 @@ export async function GET() {
       .select('*')
       .order('name')
 
-    if (error) {
+    if (error || !data) {
       console.error('Supabase error:', error)
       return NextResponse.json({ error: 'Failed to fetch businesses' }, { status: 500 })
     }
 
-    const businesses = data?.map(business => ({
+    const businesses = (data as DatabaseBusiness[]).map(business => ({
       id: business.id,
       name: business.name,
       category: business.category,
@@ -46,28 +46,30 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     
+    const newBusiness = {
+      name: body.name,
+      category: body.category,
+      description: body.description,
+      address: body.address,
+      phone: body.phone,
+      website: body.website,
+      rating: body.rating || 0,
+      featured: body.featured || false,
+      sponsored: body.sponsored || false,
+      veteran_owned: body.veteranOwned || false,
+      is_nonprofit: body.isNonprofit || false,
+      meta_description: body.metaDescription,
+      latitude: body.coordinates?.lat || 43.1009,
+      longitude: body.coordinates?.lng || -75.2321
+    }
+    
     const { data, error } = await supabase
       .from('businesses')
-      .insert([{
-        name: body.name,
-        category: body.category,
-        description: body.description,
-        address: body.address,
-        phone: body.phone,
-        website: body.website,
-        rating: body.rating || 0,
-        featured: body.featured || false,
-        sponsored: body.sponsored || false,
-        veteran_owned: body.veteranOwned || false,
-        is_nonprofit: body.isNonprofit || false,
-        meta_description: body.metaDescription,
-        latitude: body.coordinates?.lat || 43.1009,
-        longitude: body.coordinates?.lng || -75.2321
-      }])
+      .insert([newBusiness])
       .select()
-      .single()
+      .single<DatabaseBusiness>()
 
-    if (error) {
+    if (error || !data) {
       console.error('Supabase error:', error)
       return NextResponse.json({ error: 'Failed to create business' }, { status: 500 })
     }
