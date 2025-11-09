@@ -82,9 +82,11 @@ export default function Landing() {
 
   // Direct category navigation - no API call needed
   const handleCategoryClick = (category: string) => {
-    const params = new URLSearchParams()
-    params.set('categories', category)
-    router.push(`/?${params.toString()}`)
+    console.log('Category clicked:', category)
+    // Navigate with category parameter to trigger main view
+    const url = `/?categories=${encodeURIComponent(category)}`
+    console.log('Navigating to:', url)
+    router.push(url)
   }
 
   return (

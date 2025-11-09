@@ -19,7 +19,7 @@ export default function Home() {
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null)
   const [filteredBusinesses, setFilteredBusinesses] = useState<Business[]>([])
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('All Categories')
   const [selectedDesignations, setSelectedDesignations] = useState<string[]>([])
   const [selectedFilters, setSelectedFilters] = useState<string[]>([])
   const [mapFocus, setMapFocus] = useState<{ business: Business; action: string } | null>(null)
@@ -44,8 +44,13 @@ export default function Home() {
         const categoryList = categories.split(',')
         // Set the first category as selected
         if (categoryList.length > 0) {
-          setSelectedCategory(categoryList[0])
+          const category = categoryList[0]
+          console.log('Setting category from URL:', category)
+          setSelectedCategory(category)
         }
+      } else {
+        // Reset to All Categories if no category param
+        setSelectedCategory('All Categories')
       }
 
       if (designations) {
@@ -370,6 +375,21 @@ export default function Home() {
     )
   }
 
+  const handleClearSearch = () => {
+    setSearchTerm('')
+    setSelectedCategory('All Categories')
+    setSelectedFilters([])
+    setSelectedDesignations([])
+    setSelectedBusiness(null)
+    // Navigate to home to show featured businesses
+    window.history.pushState({}, '', '/')
+  }
+
+  // Show featured businesses when no filters are active
+  const displayBusinesses = filteredBusinesses.length === 0 && !searchTerm && selectedCategory === 'All Categories' && selectedFilters.length === 0
+    ? businesses.filter(b => b.featured || b.sponsored)
+    : filteredBusinesses
+
   return (
     <AuthProvider>
       <main className="flex flex-col h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -380,38 +400,41 @@ export default function Home() {
             onCategoryChange={setSelectedCategory}
             selectedFilters={selectedFilters}
             onFilterToggle={handleFilterToggle}
+            onClearSearch={handleClearSearch}
           />
         </div>
 
         {/* Main Content Area - Split Layout */}
         <div className="flex-1 mt-16 overflow-hidden flex relative">
-          {/* Left Sidebar - Business List (Collapsible) */}
+          {/* Left Sidebar - Business List (Collapsible) - Made narrower for better UX */}
           <div 
             className={`flex flex-col bg-white border-r border-gray-200 transition-all duration-300 ${
-              isSidebarCollapsed ? 'w-0' : 'w-1/3'
+              isSidebarCollapsed ? 'w-0' : 'w-80'
             } ${isSidebarCollapsed ? 'overflow-hidden' : ''}`}
           >
-            {/* View Mode Tabs */}
-            <div className="flex border-b border-gray-200">
+            {/* Compact View Mode Tabs */}
+            <div className="flex border-b border-gray-200 bg-gray-50">
               <button
                 onClick={() => setViewMode('directory')}
-                className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
+                className={`flex-1 py-2.5 px-3 text-xs font-semibold transition-all ${
                   viewMode === 'directory'
-                    ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    ? 'text-indigo-600 border-b-2 border-indigo-600 bg-white'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-white'
                 }`}
               >
-                🏢 Business Directory
+                <span className="mr-1">🏢</span>
+                Directory
               </button>
               <button
                 onClick={() => setViewMode('community')}
-                className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
+                className={`flex-1 py-2.5 px-3 text-xs font-semibold transition-all ${
                   viewMode === 'community'
-                    ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    ? 'text-indigo-600 border-b-2 border-indigo-600 bg-white'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-white'
                 }`}
               >
-                👥 Community Feed
+                <span className="mr-1">👥</span>
+                Community
               </button>
             </div>
 
@@ -419,7 +442,7 @@ export default function Home() {
             <div className="flex-1 overflow-y-auto">
               {viewMode === 'directory' ? (
                 <BusinessList
-                  businesses={filteredBusinesses}
+                  businesses={displayBusinesses}
                   selectedBusiness={selectedBusiness}
                   onBusinessSelect={setSelectedBusiness}
                   searchTerm={searchTerm}
@@ -433,11 +456,11 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Sidebar Toggle Button */}
+          {/* Sidebar Toggle Button - Adjusted for new width */}
           <button
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
             className="absolute left-0 top-1/2 -translate-y-1/2 z-30 bg-white border border-gray-300 rounded-r-lg px-2 py-6 shadow-lg hover:bg-gray-50 transition-all"
-            style={{ left: isSidebarCollapsed ? '0' : 'calc(33.333% - 1px)' }}
+            style={{ left: isSidebarCollapsed ? '0' : 'calc(320px - 1px)' }}
           >
             <svg 
               className={`w-4 h-4 text-gray-600 transition-transform ${isSidebarCollapsed ? '' : 'rotate-180'}`} 
@@ -452,7 +475,7 @@ export default function Home() {
           {/* Right Side - Map */}
           <div className="flex-1 relative">
             <BusinessMap
-              businesses={filteredBusinesses}
+              businesses={displayBusinesses}
               selectedBusiness={selectedBusiness}
               onBusinessSelect={setSelectedBusiness}
               mapFocus={mapFocus}

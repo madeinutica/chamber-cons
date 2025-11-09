@@ -9,6 +9,7 @@ interface HeaderProps {
   onCategoryChange: (category: string) => void
   selectedFilters: string[]
   onFilterToggle: (filter: string) => void
+  onClearSearch: () => void
 }
 
 const categories = [
@@ -40,12 +41,14 @@ export default function Header({
   selectedCategory, 
   onCategoryChange,
   selectedFilters,
-  onFilterToggle
+  onFilterToggle,
+  onClearSearch
 }: HeaderProps) {
   const { user, signOut, loading } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showCategories, setShowCategories] = useState(false)
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false)
 
   const filters = [
     { id: 'for-profit', label: 'For-Profit', icon: '💼', color: 'blue' },
@@ -54,6 +57,8 @@ export default function Header({
     { id: 'women', label: 'Women Owned', icon: '♀️', color: 'pink' },
     { id: 'minority', label: 'Minority Owned', icon: '🌍', color: 'purple' }
   ]
+
+  const hasActiveFilters = selectedFilters.length > 0 || selectedCategory !== 'All Categories'
 
   const getFilterColor = (color: string, isActive: boolean) => {
     const colors = {
@@ -84,24 +89,65 @@ export default function Header({
               </div>
             </div>
 
-            {/* Business Type Filters */}
+            {/* Business Type Filters - Dropdown */}
             <div className="hidden lg:flex items-center gap-2">
-              {filters.map(filter => {
-                const isActive = selectedFilters.includes(filter.id)
-                return (
-                  <button
-                    key={filter.id}
-                    onClick={() => onFilterToggle(filter.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${getFilterColor(filter.color, isActive)} ${isActive ? 'shadow-md' : ''}`}
-                  >
-                    <span>{filter.icon}</span>
-                    <span>{filter.label}</span>
-                  </button>
-                )
-              })}
+              <div className="relative">
+                <button
+                  onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-sm font-medium text-gray-700"
+                >
+                  <span>🏷️</span>
+                  <span>Business Type</span>
+                  {selectedFilters.length > 0 && (
+                    <span className="bg-indigo-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                      {selectedFilters.length}
+                    </span>
+                  )}
+                  <svg className={`w-4 h-4 transition-transform ${showFilterDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {showFilterDropdown && (
+                  <div className="absolute left-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 z-50">
+                    <div className="p-3">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Filter by Type</p>
+                      {filters.map(filter => {
+                        const isActive = selectedFilters.includes(filter.id)
+                        return (
+                          <button
+                            key={filter.id}
+                            onClick={() => onFilterToggle(filter.id)}
+                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all mb-1 ${isActive ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'hover:bg-gray-50 text-gray-700'}`}
+                          >
+                            <span>{filter.icon}</span>
+                            <span className="flex-1 text-left">{filter.label}</span>
+                            {isActive && (
+                              <svg className="w-4 h-4 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center gap-3">
+              {/* Clear Search Button */}
+              {hasActiveFilters && (
+                <button
+                  onClick={onClearSearch}
+                  className="flex items-center gap-2 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors text-sm font-medium border border-red-200"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span className="hidden md:inline">Clear Filters</span>
+                </button>
+              )}
               <div className="relative">
                 <button
                   onClick={() => setShowCategories(!showCategories)}
@@ -163,20 +209,54 @@ export default function Header({
           </div>
 
           {/* Mobile Filters */}
-          <div className="lg:hidden flex items-center gap-2 pb-3 overflow-x-auto">
-            {filters.map(filter => {
-              const isActive = selectedFilters.includes(filter.id)
-              return (
+          <div className="lg:hidden pb-3">
+            <div className="flex items-center gap-2 mb-2">
+              <button
+                onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-sm font-medium text-gray-700 flex-shrink-0"
+              >
+                <span>🏷️</span>
+                <span>Type</span>
+                {selectedFilters.length > 0 && (
+                  <span className="bg-indigo-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                    {selectedFilters.length}
+                  </span>
+                )}
+              </button>
+              {hasActiveFilters && (
                 <button
-                  key={filter.id}
-                  onClick={() => onFilterToggle(filter.id)}
-                  className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium transition-all border flex-shrink-0 ${getFilterColor(filter.color, isActive)}`}
+                  onClick={onClearSearch}
+                  className="flex items-center gap-1 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors text-sm font-medium border border-red-200 flex-shrink-0"
                 >
-                  <span>{filter.icon}</span>
-                  <span>{filter.label}</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span>Clear</span>
                 </button>
-              )
-            })}
+              )}
+            </div>
+            {showFilterDropdown && (
+              <div className="bg-white rounded-lg border border-gray-200 p-2 mb-2">
+                {filters.map(filter => {
+                  const isActive = selectedFilters.includes(filter.id)
+                  return (
+                    <button
+                      key={filter.id}
+                      onClick={() => onFilterToggle(filter.id)}
+                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all mb-1 ${isActive ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'hover:bg-gray-50 text-gray-700'}`}
+                    >
+                      <span>{filter.icon}</span>
+                      <span className="flex-1 text-left">{filter.label}</span>
+                      {isActive && (
+                        <svg className="w-4 h-4 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
       </nav>
