@@ -74,12 +74,16 @@ export default function Home() {
     setTimeout(() => setMapFocus(null), 100)
   }, [])
 
-  // Handle business selection with mobile drawer close
+  // Handle business selection with mobile drawer close and map zoom
   const handleBusinessSelect = useCallback((business: Business | null) => {
     setSelectedBusiness(business)
     if (business) {
+      // Set map focus to zoom to the specific business location
+      setMapFocus({ business, action: 'zoom' })
       // Close mobile drawer when a business is selected
       setIsMobileDrawerOpen(false)
+      // Clear the focus after a delay to allow map to update
+      setTimeout(() => setMapFocus(null), 100)
     }
   }, [])
 
