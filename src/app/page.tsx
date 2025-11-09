@@ -27,6 +27,7 @@ export default function Home() {
   const [showLanding, setShowLanding] = useState(true)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(true) // Mobile drawer open by default
 
   // Handle URL parameters from semantic search
   useEffect(() => {
@@ -67,8 +68,19 @@ export default function Home() {
   const focusOnBusiness = useCallback((business: Business, action: string = 'show') => {
     setSelectedBusiness(business)
     setMapFocus({ business, action })
+    // On mobile, close drawer to show map
+    setIsMobileDrawerOpen(false)
     // Clear the focus after a short delay to allow map to update
     setTimeout(() => setMapFocus(null), 100)
+  }, [])
+
+  // Handle business selection with mobile drawer close
+  const handleBusinessSelect = useCallback((business: Business | null) => {
+    setSelectedBusiness(business)
+    if (business) {
+      // Close mobile drawer when a business is selected
+      setIsMobileDrawerOpen(false)
+    }
   }, [])
 
   const loadSampleBusinesses = useCallback(() => {
@@ -406,9 +418,19 @@ export default function Home() {
 
         {/* Main Content Area - Split Layout */}
         <div className="flex-1 mt-16 overflow-hidden flex relative">
-          {/* Left Sidebar - Business List (Collapsible) - Made narrower for better UX */}
+          {/* Map Background - Always present */}
+          <div className="absolute inset-0 w-full h-full">
+            <BusinessMap
+              businesses={displayBusinesses}
+              selectedBusiness={selectedBusiness}
+              onBusinessSelect={handleBusinessSelect}
+              mapFocus={mapFocus}
+            />
+          </div>
+
+          {/* Desktop Sidebar - Hidden on mobile, fixed width on desktop */}
           <div 
-            className={`flex flex-col bg-white border-r border-gray-200 transition-all duration-300 ${
+            className={`hidden lg:flex flex-col bg-white border-r border-gray-200 transition-all duration-300 relative z-20 ${
               isSidebarCollapsed ? 'w-0' : 'w-80'
             } ${isSidebarCollapsed ? 'overflow-hidden' : ''}`}
           >
@@ -444,7 +466,7 @@ export default function Home() {
                 <BusinessList
                   businesses={displayBusinesses}
                   selectedBusiness={selectedBusiness}
-                  onBusinessSelect={setSelectedBusiness}
+                  onBusinessSelect={handleBusinessSelect}
                   searchTerm={searchTerm}
                   selectedCategory={selectedCategory}
                 />
@@ -456,10 +478,10 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Sidebar Toggle Button - Adjusted for new width */}
+          {/* Desktop Toggle Button - Only visible on desktop */}
           <button
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-30 bg-white border border-gray-300 rounded-r-lg px-2 py-6 shadow-lg hover:bg-gray-50 transition-all"
+            className="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 z-30 bg-white border border-gray-300 rounded-r-lg px-2 py-6 shadow-lg hover:bg-gray-50 transition-all"
             style={{ left: isSidebarCollapsed ? '0' : 'calc(320px - 1px)' }}
           >
             <svg 
@@ -472,78 +494,150 @@ export default function Home() {
             </svg>
           </button>
 
-          {/* Right Side - Map */}
-          <div className="flex-1 relative">
-            <BusinessMap
-              businesses={displayBusinesses}
-              selectedBusiness={selectedBusiness}
-              onBusinessSelect={setSelectedBusiness}
-              mapFocus={mapFocus}
-            />
-            
-            {/* AI Concierge Floating Button */}
-            {!isChatOpen && (
-              <button
-                onClick={() => setIsChatOpen(true)}
-                className="absolute bottom-6 right-6 z-40 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-full p-4 shadow-2xl hover:shadow-3xl transition-all hover:scale-110 group"
-              >
-                <div className="flex items-center gap-2">
+          {/* Mobile Drawer - Full screen, slides up from bottom */}
+          <div 
+            className={`lg:hidden fixed inset-0 z-40 transition-transform duration-300 ease-in-out ${
+              isMobileDrawerOpen ? 'translate-y-0' : 'translate-y-full'
+            }`}
+            style={{ top: '64px' }} // Below header
+          >
+            <div className="h-full flex flex-col bg-white">
+              {/* Mobile Drawer Handle */}
+              <div className="flex-shrink-0 bg-gradient-to-r from-indigo-600 to-blue-600 px-4 py-3 flex items-center justify-between shadow-lg">
+                <h2 className="text-white font-bold text-lg flex items-center gap-2">
+                  <span>🏢</span>
+                  <span>Business Directory</span>
+                </h2>
+                <button
+                  onClick={() => setIsMobileDrawerOpen(false)}
+                  className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
+                >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
-                  <span className="hidden group-hover:inline-block font-semibold text-sm whitespace-nowrap">AI Concierge</span>
-                </div>
-              </button>
-            )}
+                </button>
+              </div>
 
-            {/* AI Concierge Drawer Overlay (2/3 width) - Clean White Design */}
-            {isChatOpen && (
-              <div className="absolute inset-0 z-50 flex justify-end">
-                {/* Minimal backdrop - just for click-to-close */}
-                <div 
-                  className="absolute inset-0 bg-transparent"
-                  onClick={() => setIsChatOpen(false)}
-                />
-                
-                {/* Drawer Panel - Full height, clean white */}
-                <div className="relative w-2/3 h-full bg-white border-l border-gray-200 flex flex-col">
-                  {/* Clean Header with Close Button */}
-                  <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow-sm">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h2 className="text-base font-bold text-gray-900">AI Business Concierge</h2>
-                        <p className="text-xs text-gray-500">Ask me anything about local businesses</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setIsChatOpen(false)}
-                      className="w-8 h-8 hover:bg-gray-100 rounded-lg flex items-center justify-center transition-colors text-gray-600 hover:text-gray-900"
-                      aria-label="Close chat"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+              {/* Mobile View Mode Tabs */}
+              <div className="flex border-b border-gray-200 bg-gray-50 flex-shrink-0">
+                <button
+                  onClick={() => setViewMode('directory')}
+                  className={`flex-1 py-3 px-4 text-sm font-semibold transition-all ${
+                    viewMode === 'directory'
+                      ? 'text-indigo-600 border-b-2 border-indigo-600 bg-white'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-white'
+                  }`}
+                >
+                  <span className="mr-2">🏢</span>
+                  Directory
+                </button>
+                <button
+                  onClick={() => setViewMode('community')}
+                  className={`flex-1 py-3 px-4 text-sm font-semibold transition-all ${
+                    viewMode === 'community'
+                      ? 'text-indigo-600 border-b-2 border-indigo-600 bg-white'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-white'
+                  }`}
+                >
+                  <span className="mr-2">👥</span>
+                  Community
+                </button>
+              </div>
+
+              {/* Mobile Scrollable Content */}
+              <div className="flex-1 overflow-y-auto">
+                {viewMode === 'directory' ? (
+                  <BusinessList
+                    businesses={displayBusinesses}
+                    selectedBusiness={selectedBusiness}
+                    onBusinessSelect={handleBusinessSelect}
+                    searchTerm={searchTerm}
+                    selectedCategory={selectedCategory}
+                  />
+                ) : (
+                  <div className="p-4">
+                    <CommunityFeed />
                   </div>
+                )}
+              </div>
+            </div>
+          </div>
 
-                  {/* ChatBot Content - Centered with max width for readability */}
-                  <div className="flex-1 overflow-hidden bg-white">
-                    <div className="h-full max-w-4xl mx-auto">
-                      <ChatBot 
-                        businesses={businesses}
-                        onShowOnMap={focusOnBusiness}
-                      />
+          {/* Mobile Floating Action Button - Show Map */}
+          {!isMobileDrawerOpen && (
+            <button
+              onClick={() => setIsMobileDrawerOpen(true)}
+              className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-full px-6 py-4 shadow-2xl hover:shadow-3xl transition-all hover:scale-105 flex items-center gap-2 font-bold"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <span>View Businesses</span>
+            </button>
+          )}
+
+          {/* AI Concierge Floating Button - Positioned for both desktop and mobile */}
+          {!isChatOpen && (
+            <button
+              onClick={() => setIsChatOpen(true)}
+              className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-full p-4 shadow-2xl hover:shadow-3xl transition-all hover:scale-110 group"
+            >
+              <div className="flex items-center gap-2">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                <span className="hidden group-hover:inline-block font-semibold text-sm whitespace-nowrap">AI Concierge</span>
+              </div>
+            </button>
+          )}
+
+          {/* AI Concierge Drawer Overlay - Responsive Design */}
+          {isChatOpen && (
+            <div className="fixed inset-0 z-50 flex justify-end" style={{ top: '64px' }}>
+              {/* Minimal backdrop - just for click-to-close */}
+              <div 
+                className="absolute inset-0 bg-black/20 lg:bg-transparent"
+                onClick={() => setIsChatOpen(false)}
+              />
+              
+              {/* Drawer Panel - Full width on mobile, 2/3 on desktop */}
+              <div className="relative w-full lg:w-2/3 h-full bg-white border-l border-gray-200 flex flex-col shadow-2xl">
+                {/* Clean Header with Close Button */}
+                <div className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow-sm">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                      </svg>
                     </div>
+                    <div>
+                      <h2 className="text-base font-bold text-gray-900">AI Business Concierge</h2>
+                      <p className="text-xs text-gray-500">Ask me anything about local businesses</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsChatOpen(false)}
+                    className="w-8 h-8 hover:bg-gray-100 rounded-lg flex items-center justify-center transition-colors text-gray-600 hover:text-gray-900"
+                    aria-label="Close chat"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* ChatBot Content - Centered with max width for readability */}
+                <div className="flex-1 overflow-hidden bg-white">
+                  <div className="h-full max-w-4xl mx-auto">
+                    <ChatBot 
+                      businesses={businesses}
+                      onShowOnMap={focusOnBusiness}
+                    />
                   </div>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </main>
     </AuthProvider>

@@ -74,19 +74,21 @@ export default function Header({
   return (
     <>
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-lg">
-        <div className="max-w-full px-6">
+        <div className="max-w-full px-3 md:px-6">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
+            {/* Logo - Compact on mobile */}
+            <div className="flex items-center gap-2 md:gap-3">
               <div className="relative">
-                <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-lg"></span>
+                <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <span className="text-white font-bold text-base md:text-lg"></span>
                 </div>
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+                <div className="absolute -top-1 -right-1 w-2 h-2 md:w-3 md:h-3 bg-yellow-400 rounded-full animate-pulse"></div>
               </div>
-              <div>
+              <div className="hidden sm:block">
                 <h1 className="text-sm font-bold text-gray-900 leading-tight">Chamber Concierge</h1>
                 <p className="text-xs text-gray-500">CNY Business Directory</p>
               </div>
+              <h1 className="sm:hidden text-xs font-bold text-gray-900">Chamber</h1>
             </div>
 
             {/* Business Type Filters - Dropdown */}
@@ -135,32 +137,36 @@ export default function Header({
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              {/* Clear Search Button */}
+            <div className="flex items-center gap-1.5 md:gap-3">
+              {/* Clear Search Button - Icon only on mobile */}
               {hasActiveFilters && (
                 <button
                   onClick={onClearSearch}
-                  className="flex items-center gap-2 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors text-sm font-medium border border-red-200"
+                  className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors text-sm font-medium border border-red-200"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                  <span className="hidden md:inline">Clear Filters</span>
+                  <span className="hidden md:inline">Clear</span>
                 </button>
               )}
+              
+              {/* Category Dropdown - Compact on mobile */}
               <div className="relative">
                 <button
                   onClick={() => setShowCategories(!showCategories)}
-                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-sm font-medium text-gray-700"
+                  className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-xs md:text-sm font-medium text-gray-700"
                 >
-                  <span></span>
-                  <span className="hidden md:inline">{selectedCategory === 'All Categories' ? 'All' : selectedCategory}</span>
-                  <svg className={`w-4 h-4 transition-transform ${showCategories ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <span className="text-sm md:text-base"></span>
+                  <span className="hidden sm:inline truncate max-w-[80px] md:max-w-none">
+                    {selectedCategory === 'All Categories' ? 'All' : selectedCategory}
+                  </span>
+                  <svg className={`w-3 h-3 md:w-4 md:h-4 transition-transform flex-shrink-0 ${showCategories ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
                 {showCategories && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 max-h-96 overflow-y-auto z-50">
+                  <div className="absolute right-0 mt-2 w-56 md:w-64 bg-white rounded-xl shadow-2xl border border-gray-200 max-h-[60vh] md:max-h-96 overflow-y-auto z-50">
                     <div className="p-2">
                       {categories.map(category => (
                         <button
